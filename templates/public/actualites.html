@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Actualites - {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="section-padding bg-light">
+  <div class="container">
+    <div class="row align-items-end mb-5">
+      <div class="col-lg-8">
+        <span class="section-sub-title">Actualites</span>
+        <h1>Suivez la vie de l'EMSP en images</h1>
+      </div>
+      {% if tags %}
+      <div class="col-lg-4">
+        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+          <a href="{% url 'actualites:liste' %}" class="btn {% if not tag_actif %}btn-primary{% else %}btn-outline-success{% endif %} btn-sm">Toutes</a>
+          {% for tag in tags %}
+          <a href="{% url 'actualites:liste' %}?tag={{ tag.slug }}" class="btn {% if tag_actif == tag.slug %}btn-primary{% else %}btn-outline-success{% endif %} btn-sm">{{ tag.nom }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="row">
+      {% for article in page_obj %}
+      <div class="col-lg-4 col-md-6 mb-4">
+        <article class="blog-card h-100">
+          <div class="blog-img emsp-article-card-media">
+            {% if article.display_image_url %}
+            <img src="{{ article.display_image_url }}" alt="{{ article.display_image_alt }}" class="img-fluid emsp-article-card-img">
+            {% else %}
+            <div class="emsp-image-placeholder">Image actualite non disponible</div>
+            {% endif %}
+          </div>
+          <div class="blog-content p-4">
+            <span class="blog-date">{{ article.publie_le|date:"d M Y" }}</span>
+            <h5 class="mt-2">{{ article.titre }}</h5>
+            <p>{{ article.extrait|truncatewords:20 }}</p>
+            <a href="{% url 'actualites:detail' article.slug %}" class="btn btn-primary">Lire l'article</a>
+          </div>
+        </article>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <p class="text-center text-muted mb-0">Aucune actualite publiee.</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if tag_actif %}&tag={{ tag_actif }}{% endif %}" class="btn btn-outline-success">Precedent</a>
+      {% endif %}
+      <span class="btn btn-light disabled">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if tag_actif %}&tag={{ tag_actif }}{% endif %}" class="btn btn-outline-success">Suivant</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

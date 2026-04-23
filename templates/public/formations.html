@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Formations - {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="section-padding">
+  <div class="container">
+    <h1>Formations</h1>
+    <div class="row">
+      {% for formation in formations %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5>{{ formation.nom }}</h5>
+            <p>{{ formation.description|truncatewords:20 }}</p>
+            <a href="{% url 'formations:detail' formation.code %}" class="btn btn-primary">Details</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p>Aucune formation disponible.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

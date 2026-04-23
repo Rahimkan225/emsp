@@ -1,0 +1,35 @@
+<ul class="dropdown-menu mega-menu">
+  <li class="mega-col">
+    <h6 class="mega-title">Formations Superieures Postales</h6>
+    <ul>
+      {% for filiere in nav_fsp %}
+      <li><a href="{% url 'formations:detail' filiere.code %}">{{ filiere.nom }}</a></li>
+      {% empty %}
+      <li><span>Aucune filiere FSP</span></li>
+      {% endfor %}
+    </ul>
+  </li>
+  <li class="mega-col">
+    <h6 class="mega-title">FS-MENUM</h6>
+    <ul>
+      <li><strong>Licences</strong></li>
+      {% for filiere in nav_licences %}
+      <li><a href="{% url 'formations:detail' filiere.code %}">{{ filiere.code }} - {{ filiere.nom }}</a></li>
+      {% endfor %}
+      <li><strong>Masters</strong></li>
+      {% for filiere in nav_masters %}
+      <li><a href="{% url 'formations:detail' filiere.code %}">{{ filiere.code }} - {{ filiere.nom }}</a></li>
+      {% endfor %}
+    </ul>
+  </li>
+  <li class="mega-col">
+    <h6 class="mega-title">Formations Certifiantes</h6>
+    <ul>
+      {% for filiere in nav_certifiantes %}
+      <li><a href="{% url 'formations:detail' filiere.code %}">{{ filiere.nom }}</a></li>
+      {% empty %}
+      <li><span>Aucune filiere certifiante</span></li>
+      {% endfor %}
+    </ul>
+  </li>
+</ul>

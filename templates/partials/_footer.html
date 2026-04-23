@@ -1,0 +1,25 @@
+<footer class="footer">
+  <div class="container py-5">
+    <div class="row">
+      <div class="col-lg-4">
+        <h5>{{ site.site_name }}</h5>
+        <p>{{ site.address }}</p>
+      </div>
+      <div class="col-lg-4">
+        <h6>Contact</h6>
+        <p>{{ site.phone_1 }}{% if site.phone_2 %} / {{ site.phone_2 }}{% endif %}</p>
+        <p><a href="mailto:{{ site.email_contact }}">{{ site.email_contact }}</a></p>
+      </div>
+      <div class="col-lg-4">
+        <h6>Suivez-nous</h6>
+        {% if site.facebook_url %}<a href="{{ site.facebook_url }}" aria-label="Facebook">Facebook</a><br>{% endif %}
+        {% if site.twitter_url %}<a href="{{ site.twitter_url }}" aria-label="Twitter">Twitter</a><br>{% endif %}
+        {% if site.linkedin_url %}<a href="{{ site.linkedin_url }}" aria-label="LinkedIn">LinkedIn</a><br>{% endif %}
+        {% if site.youtube_url %}<a href="{{ site.youtube_url }}" aria-label="Youtube">Youtube</a>{% endif %}
+      </div>
+    </div>
+    <div class="pt-3 mt-3 border-top">
+      <small>{{ site.footer_text|default:"EMSP - Tous droits reserves." }}</small>
+    </div>
+  </div>
+</footer>

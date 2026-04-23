@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ site.site_name }} - EMSP{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'purdue/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'purdue/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'purdue/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'emsp/css/emsp-custom.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% include 'partials/_topbar.html' %}
+  {% include 'partials/_navbar.html' %}
+  <main>{% block content %}{% endblock %}</main>
+  {% include 'partials/_footer.html' %}
+  <script src="{% static 'purdue/js/jquery.min.js' %}"></script>
+  <script src="{% static 'purdue/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'purdue/js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

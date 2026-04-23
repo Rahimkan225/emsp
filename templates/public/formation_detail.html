@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{{ formation.nom }} - {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="section-padding">
+  <div class="container">
+    <h1>{{ formation.nom }}</h1>
+    <p><strong>Niveau:</strong> {{ formation.get_niveau_display }}</p>
+    <p><strong>Duree:</strong> {{ formation.duree }}</p>
+    <p>{{ formation.description }}</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Accuse de reception {{ candidature.dossier_number }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #1E293B;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+      padding: 32px;
+      background: #FFFFFF;
+    }
+    .header {
+      border-bottom: 4px solid #22C55E;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0 0 8px;
+    }
+    .subtitle {
+      color: #475569;
+      margin: 0;
+    }
+    .badge {
+      display: inline-block;
+      background: #FACC15;
+      color: #1E293B;
+      font-weight: bold;
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-top: 12px;
+    }
+    .section {
+      margin-top: 20px;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .section h2 {
+      font-size: 16px;
+      margin: 0 0 12px;
+      color: #22C55E;
+    }
+    .row {
+      margin-bottom: 8px;
+    }
+    .label {
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 28px;
+      font-size: 11px;
+      color: #64748B;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Accuse de reception de candidature</h1>
+    <p class="subtitle">{{ site.site_name }} - Ecole Multinationale Superieure des Postes</p>
+    <div class="badge">Dossier {{ candidature.dossier_number }}</div>
+  </div>
+
+  <div class="section">
+    <h2>Candidat</h2>
+    <div class="row"><span class="label">Nom complet :</span> {{ candidature.full_name }}</div>
+    <div class="row"><span class="label">Email :</span> {{ candidature.email }}</div>
+    <div class="row"><span class="label">Telephone :</span> {{ candidature.phone }}</div>
+    <div class="row"><span class="label">Nationalite :</span> {{ candidature.get_nationality_display }}</div>
+  </div>
+
+  <div class="section">
+    <h2>Formation demandee</h2>
+    <div class="row"><span class="label">Code :</span> {{ candidature.formation.code }}</div>
+    <div class="row"><span class="label">Intitule :</span> {{ candidature.formation.nom }}</div>
+    <div class="row"><span class="label">Niveau :</span> {{ candidature.formation.get_niveau_display }}</div>
+    <div class="row"><span class="label">Duree :</span> {{ candidature.formation.duree }}</div>
+  </div>
+
+  <div class="section">
+    <h2>Depot</h2>
+    <div class="row"><span class="label">Statut :</span> {{ candidature.get_status_display }}</div>
+    <div class="row"><span class="label">Date de soumission :</span> {{ candidature.created_at|date:"d/m/Y H:i" }}</div>
+    <div class="row"><span class="label">Diplome declare :</span> {{ candidature.get_highest_degree_display }}</div>
+  </div>
+
+  <p class="footer">
+    Ce document confirme la reception de votre candidature. Conservez le numero de dossier pour tout suivi ulterieur.
+    Contact : {{ site.email_contact }} - {{ site.phone_1 }}.
+  </p>
+</body>
+</html>

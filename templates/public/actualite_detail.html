@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ article.titre }} - {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="section-padding">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <a href="{% url 'actualites:liste' %}" class="btn btn-outline-success btn-sm mb-4">Retour aux actualites</a>
+        <span class="section-sub-title">Actualite EMSP</span>
+        <h1>{{ article.titre }}</h1>
+        <p class="emsp-article-meta">{{ article.publie_le|date:"d F Y" }}</p>
+        {% if article.display_image_url %}
+        <div class="emsp-article-detail-cover">
+          <img src="{{ article.display_image_url }}" alt="{{ article.display_image_alt }}" class="img-fluid">
+        </div>
+        {% endif %}
+        {% if article.extrait %}
+        <p class="lead">{{ article.extrait }}</p>
+        {% endif %}
+        <div class="emsp-article-content">
+          {{ article.contenu|linebreaks }}
+        </div>
+      </div>
+    </div>
+    {% if articles_recents %}
+    <div class="row mt-5">
+      <div class="col-12 text-center mb-4">
+        <span class="section-sub-title">A lire aussi</span>
+        <h2 class="section-title">Autres actualites</h2>
+      </div>
+      {% for item in articles_recents %}
+      <div class="col-lg-4 col-md-6 mb-4">
+        <article class="blog-card h-100">
+          <div class="blog-img emsp-article-card-media">
+            {% if item.display_image_url %}
+            <img src="{{ item.display_image_url }}" alt="{{ item.display_image_alt }}" class="img-fluid emsp-article-card-img">
+            {% else %}
+            <div class="emsp-image-placeholder">Image actualite non disponible</div>
+            {% endif %}
+          </div>
+          <div class="blog-content p-4">
+            <span class="blog-date">{{ item.publie_le|date:"d M Y" }}</span>
+            <h5 class="mt-2">{{ item.titre }}</h5>
+            <p>{{ item.extrait|truncatewords:15 }}</p>
+            <a href="{% url 'actualites:detail' item.slug %}">Lire la suite</a>
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

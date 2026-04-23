@@ -1,0 +1,32 @@
+{% load static %}
+<header class="header-area">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg">
+      <a class="navbar-brand" href="{% url 'core:home' %}" aria-label="Accueil EMSP">
+        {% if site.logo %}
+          <img src="{{ site.logo.url }}" alt="{{ site.logo_alt }}" style="max-width:160px;">
+        {% else %}
+          <img src="{% static 'emsp/images/logo-emsp.svg' %}" alt="Logo EMSP" style="max-width:220px;">
+        {% endif %}
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="{% url 'core:home' %}">Accueil</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="{% url 'formations:liste' %}" data-bs-toggle="dropdown">Formations</a>
+            {% include 'partials/_mega_menu.html' %}
+          </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'actualites:liste' %}">Actualites</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'core:contact' %}">Contact</a></li>
+        </ul>
+        <div class="d-flex gap-2 ms-lg-3">
+          <a href="/etudiant/login/" class="btn btn-success">Espace Etudiant</a>
+          <a href="/admin/" class="btn emsp-admin-btn">Administration</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
