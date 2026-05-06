@@ -80,7 +80,7 @@ const Navbar = () => {
             Espace Etudiant
           </a>
           <a
-            href="/admin/dashboard"
+            href="/login"
             className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-dark transition hover:bg-amber-400"
           >
             Administration
@@ -180,7 +180,7 @@ const Navbar = () => {
                   Espace Etudiant
                 </a>
                 <a
-                  href="/admin/dashboard"
+                  href="/login"
                   className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-semibold text-dark"
                   onClick={() => setMobileOpen(false)}
                 >

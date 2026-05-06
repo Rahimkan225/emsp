@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsStaffOrAdmin
+from apps.accounts.permissions import IsFullAdminAccess
 
 from .models import Article, Tag
 from .serializers import ArticleAdminSerializer, ArticleSerializer, TagSerializer
@@ -75,7 +75,7 @@ class ArticleDetailApi(generics.RetrieveAPIView):
 
 
 class ArticleAdminListApi(APIView):
-    permission_classes = [IsStaffOrAdmin]
+    permission_classes = [IsFullAdminAccess]
 
     def get(self, request):
         queryset = Article.objects.select_related("cover", "created_by").prefetch_related("tags")
@@ -106,7 +106,7 @@ class ArticleAdminListApi(APIView):
 
 
 class ArticleAdminDetailApi(APIView):
-    permission_classes = [IsStaffOrAdmin]
+    permission_classes = [IsFullAdminAccess]
 
     def get_object(self, pk):
         return generics.get_object_or_404(

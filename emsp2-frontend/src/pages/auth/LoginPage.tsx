@@ -2,6 +2,7 @@ import { ArrowLeft, Loader2, Lock, Mail } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
+import { canAccessAdminPath, getAdminHomePath } from "../../config/adminPortal";
 import { useAuth } from "../../hooks/useAuth";
 import { useSiteConfig } from "../../hooks/useSiteConfig";
 
@@ -24,11 +25,11 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (redirectTarget) {
+      if (redirectTarget && canAccessAdminPath(user.role, redirectTarget)) {
         navigate(redirectTarget, { replace: true });
         return;
       }
-      navigate(user.role === "etudiant" ? "/etudiant/dashboard" : "/admin/dashboard", { replace: true });
+      navigate(user.role === "etudiant" ? "/etudiant/dashboard" : getAdminHomePath(user.role), { replace: true });
     }
   }, [isAuthenticated, navigate, redirectTarget, user]);
 
@@ -39,104 +40,119 @@ const LoginPage = () => {
 
     try {
       const loggedUser = await login({ email, password });
-      const nextPath = redirectTarget || (loggedUser.role === "etudiant" ? "/etudiant/dashboard" : "/admin/dashboard");
+      const nextPath =
+        redirectTarget && canAccessAdminPath(loggedUser.role, redirectTarget)
+          ? redirectTarget
+          : loggedUser.role === "etudiant"
+            ? "/etudiant/dashboard"
+            : getAdminHomePath(loggedUser.role);
       navigate(nextPath, { replace: true });
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || "Connexion impossible pour le moment.");
+    } catch (err: unknown) {
+      const detail =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
+      setError(detail || "Connexion impossible pour le moment.");
     } finally {
       setLoading(false);
     }
   };
 
   if (isAuthenticated && user) {
-    return <Navigate to={user.role === "etudiant" ? "/etudiant/dashboard" : "/admin/dashboard"} replace />;
+    return <Navigate to={user.role === "etudiant" ? "/etudiant/dashboard" : getAdminHomePath(user.role)} replace />;
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-12">
-        <div className="grid w-full max-w-5xl overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_40px_100px_-55px_rgba(15,23,42,0.45)] lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="hidden bg-[linear-gradient(145deg,#1E293B_0%,#0F172A_100%)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-primary">EMSP</p>
-              <h1 className="mt-6 font-display text-5xl font-bold leading-tight">
-                Portail Etudiant & Dashboard Administration
-              </h1>
-              <p className="mt-6 max-w-md text-base leading-8 text-white/80">
-              </p>
-            </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p className="text-sm uppercase tracking-[0.22em] text-white/50"></p>
-              <div className="mt-4 space-y-3 text-sm">
-                <p><span className="font-semibold text-primary"></span> </p>
-                <p><span className="font-semibold text-primary"></span> </p>
-              </div>
+    <div className="min-h-screen bg-slate-100">
+      <div className="grid min-h-screen lg:grid-cols-12">
+        {/* Maxton auth-cover — illustration */}
+        <div className="relative hidden items-center justify-center border-r border-slate-200 bg-gradient-to-br from-maxton-navy2 via-indigo-950 to-maxton-navy lg:col-span-7 lg:flex">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(34,197,94,0.2),transparent_50%)]" />
+          <div className="relative px-10 py-12 text-center text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-300/90">Maxton · EMSP</p>
+            <h1 className="mt-6 font-display text-4xl font-bold leading-tight md:text-5xl">
+              Tableau de bord direction & etudiants
+            </h1>
+            <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-white/75">
+              Pilotage des effectifs, admissions et finances — meme ergonomie que le theme Maxton (nouveau_dashboard), adapte a l&apos;ecole des Metiers des Postes.
+            </p>
+            <div className="mx-auto mt-12 max-w-xl">
+              <img src="/maxton/login1.png" width={520} height={420} className="mx-auto h-auto max-w-full drop-shadow-2xl" alt="" />
             </div>
           </div>
+        </div>
 
-          <div className="p-6 sm:p-10 lg:p-12">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
+        {/* Formulaire — bordure superieure type Maxton */}
+        <div className="relative flex flex-col justify-center bg-white lg:col-span-5">
+          <div className="absolute left-0 right-0 top-0 h-1.5 bg-gradient-to-r from-secondary via-primary to-indigo-600" />
+          <div className="px-6 py-10 sm:px-10 lg:px-12">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
                 {site?.logoUrl ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <img src={site.logoUrl} alt={site.logoAlt} className="h-14 w-auto max-w-[220px] object-contain" />
-                  </div>
+                  <img src={site.logoUrl} alt={site.logoAlt} className="mb-6 h-12 w-auto max-w-[200px] object-contain md:h-14" />
                 ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-xl font-bold text-white">E</div>
+                  <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary font-display text-xl font-bold text-white shadow-lg shadow-secondary/30">
+                    E
+                  </div>
                 )}
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-secondary">Connexion</p>
-                  <h2 className="mt-2 font-display text-3xl font-bold text-dark">Acceder a votre espace</h2>
-                </div>
+                <h2 className="font-display text-2xl font-bold tracking-tight text-dark md:text-3xl">Connexion</h2>
+                <p className="mt-2 text-sm text-slate-600">Identifiants EMSP (personnel ou etudiant).</p>
               </div>
-              <Link to="/" className="hidden items-center gap-2 text-sm font-semibold text-slate-500 hover:text-secondary sm:inline-flex">
+              <Link
+                to="/"
+                className="hidden items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-secondary sm:inline-flex"
+              >
                 <ArrowLeft size={16} />
-                Retour au site
+                Site public
               </Link>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-dark">Email</span>
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 focus-within:border-secondary focus-within:ring-4 focus-within:ring-emerald-100">
+            <form onSubmit={handleSubmit} className="mt-9 space-y-5">
+              <div>
+                <label htmlFor="login-email" className="mb-1.5 block text-sm font-semibold text-dark">
+                  E-mail
+                </label>
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 transition focus-within:border-secondary focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
                   <Mail size={18} className="text-slate-400" />
                   <input
+                    id="login-email"
                     type="email"
                     value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="vous@emsp.int"
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none"
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vous@domaine.ext"
+                    autoComplete="username"
+                    className="w-full bg-transparent text-sm text-slate-800 outline-none"
                     required
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-dark">Mot de passe</span>
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 focus-within:border-secondary focus-within:ring-4 focus-within:ring-emerald-100">
+              <div>
+                <label htmlFor="login-password" className="mb-1.5 block text-sm font-semibold text-dark">
+                  Mot de passe
+                </label>
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 transition focus-within:border-secondary focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
                   <Lock size={18} className="text-slate-400" />
                   <input
+                    id="login-password"
                     type="password"
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none"
+                    autoComplete="current-password"
+                    className="w-full bg-transparent text-sm text-slate-800 outline-none"
                     required
                   />
                 </div>
-              </label>
+              </div>
 
               {error ? (
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {error}
-                </div>
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
               ) : null}
 
-              <div className="flex items-center justify-between gap-4">
-                <a href="#" className="text-sm font-medium text-secondary underline-offset-4 hover:underline">
-                  Mot de passe oublie ?
-                </a>
-                <Link to="/" className="text-sm font-medium text-slate-500 underline-offset-4 hover:underline sm:hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <span className="text-slate-500">Mot de passe oublie ? Contactez la scolarite.</span>
+                <Link to="/" className="font-medium text-secondary underline-offset-4 hover:underline sm:hidden">
                   Retour au site
                 </Link>
               </div>
@@ -144,11 +160,30 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-5 py-3.5 font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
+                className="btn-grd-emsp w-full rounded-xl px-5 py-3.5 text-center text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loading ? <Loader2 size={18} className="animate-spin" /> : null}
-                Se connecter
+                {loading ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Loader2 size={18} className="animate-spin" />
+                    Connexion...
+                  </span>
+                ) : (
+                  "Se connecter"
+                )}
               </button>
+
+              <div className="maxton-auth-sep">
+                <div className="line" />
+                <p className="mb-0 shrink-0 text-xs font-bold uppercase tracking-wider text-slate-400">ou</p>
+                <div className="line" />
+              </div>
+
+              <p className="text-center text-sm text-slate-600">
+                Pas encore de compte applicatif ?{" "}
+                <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-800">
+                  Creer un dossier candidat
+                </Link>
+              </p>
             </form>
           </div>
         </div>

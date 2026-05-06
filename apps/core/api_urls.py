@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsStaffOrAdmin
+from apps.accounts.permissions import IsFullAdminAccess
 
 from .models import SiteConfig
 from .serializers import ContactMessageSerializer, SiteConfigAdminSerializer, SiteConfigSerializer
@@ -23,7 +23,7 @@ class SiteConfigApiView(APIView):
 
 
 class AdminSiteConfigApiView(APIView):
-    permission_classes = [IsStaffOrAdmin]
+    permission_classes = [IsFullAdminAccess]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):

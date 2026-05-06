@@ -14,6 +14,16 @@ from apps.mediatheque.models import MediaItem
 REACT_DIST_DIR = settings.BASE_DIR / "emsp2-frontend" / "dist"
 REACT_ASSETS_DIR = REACT_DIST_DIR / "assets"
 
+NOUVEAU_DASHBOARD_DIR = (
+    settings.BASE_DIR
+    / "nouveau_dashboard"
+    / "codervent.com"
+    / "maxton"
+    / "demo"
+    / "vertical-menu"
+)
+NOUVEAU_DASHBOARD_ASSETS_DIR = NOUVEAU_DASHBOARD_DIR / "assets"
+
 
 def home(request):
     """Page d'accueil publique basee sur Purdue."""
@@ -79,6 +89,23 @@ def react_asset(request, path):
 
     if REACT_ASSETS_DIR.resolve() not in asset_path.parents or not asset_path.is_file():
         raise Http404("Asset frontend introuvable.")
+
+    content_type, _ = mimetypes.guess_type(asset_path.name)
+    return FileResponse(asset_path.open("rb"), content_type=content_type or "application/octet-stream")
+
+
+def nouveau_dashboard_app(request, portal=None, path=""):
+    index_path = NOUVEAU_DASHBOARD_DIR / "index.html"
+    if not index_path.exists():
+        raise Http404("Le template `nouveau_dashboard` est introuvable.")
+    return FileResponse(index_path.open("rb"), content_type="text/html; charset=utf-8")
+
+
+def nouveau_dashboard_asset(request, portal=None, path=""):
+    asset_path = (NOUVEAU_DASHBOARD_ASSETS_DIR / Path(path)).resolve()
+
+    if NOUVEAU_DASHBOARD_ASSETS_DIR.resolve() not in asset_path.parents or not asset_path.is_file():
+        raise Http404("Asset dashboard introuvable.")
 
     content_type, _ = mimetypes.guess_type(asset_path.name)
     return FileResponse(asset_path.open("rb"), content_type=content_type or "application/octet-stream")

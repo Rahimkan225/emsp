@@ -210,15 +210,21 @@ export interface AdminDashboardData {
 export interface AdminStudent {
   id: number;
   matricule: string;
+  firstName?: string;
+  lastName?: string;
   fullName: string;
   email: string;
   phone?: string;
+  formationId?: number;
   formationName: string;
   formationCode: string;
+  promotionId?: number | null;
   promotionLabel: string;
   academicYear: string;
   country: string;
   countryLabel: string;
+  dateNaissance?: string | null;
+  lieuNaissance?: string;
   rank: number;
   balance: number;
   balanceLabel: string;
@@ -234,6 +240,7 @@ export interface AdminStudent {
 }
 
 export interface AdminStudentsData {
+  datasetMode: "portal" | "legacy";
   summary: {
     total: number;
     active: number;
@@ -242,6 +249,115 @@ export interface AdminStudentsData {
     outstandingBalance: number;
   };
   results: AdminStudent[];
+}
+
+export interface AdminStudentFormationOption {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface AdminStudentPromotionOption {
+  id: number;
+  label: string;
+  academicYear: string;
+  formationId: number;
+  formationCode: string;
+}
+
+export interface AdminStudentCountryOption {
+  value: string;
+  label: string;
+}
+
+export interface AdminStudentOptionsData {
+  formations: AdminStudentFormationOption[];
+  promotions: AdminStudentPromotionOption[];
+  countries: AdminStudentCountryOption[];
+}
+
+export interface AdminLegacyStudentPayload {
+  matricule: string;
+  fullName: string;
+  gender: "" | "M" | "F";
+  age?: number | null;
+  phone?: string;
+  hobbies?: string;
+}
+
+export interface AdminPortalStudentPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  matricule: string;
+  formationId: number;
+  promotionId?: number | null;
+  pays: string;
+  dateNaissance?: string | null;
+  lieuNaissance?: string;
+  rangPromotion?: number;
+  soldeScolarite?: number;
+  isActive?: boolean;
+  password?: string;
+}
+
+export interface AdminApplication {
+  id: number;
+  dossierNumber: string;
+  status: "submitted" | "under_review" | "accepted" | "rejected";
+  statusLabel: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  nationality: string;
+  nationalityLabel: string;
+  formationName: string;
+  formationCode: string;
+  createdAt: string;
+  updatedAt: string;
+  acknowledgementUrl: string;
+}
+
+export interface AdminApplicationDocument {
+  id: number;
+  originalName: string;
+  createdAt: string;
+  url: string;
+}
+
+export interface AdminApplicationsData {
+  summary: {
+    total: number;
+    pending: number;
+    accepted: number;
+    rejected: number;
+  };
+  results: AdminApplication[];
+}
+
+export interface AdminApplicationDetail extends AdminApplication {
+  dateOfBirth: string;
+  placeOfBirth: string;
+  residenceCountry: string;
+  address: string;
+  whatsapp?: string;
+  photoUrl: string;
+  highestDegree: string;
+  highestDegreeLabel: string;
+  institutionName: string;
+  graduationYear: number;
+  diplomaCountry: string;
+  transcriptUrl: string;
+  diplomaUrl: string;
+  motivationFileUrl: string;
+  professionalExperience?: string;
+  motivationText?: string;
+  accuracyCertified: boolean;
+  termsAccepted: boolean;
+  additionalDocuments: AdminApplicationDocument[];
 }
 
 export interface AdminAcademicPromotion {

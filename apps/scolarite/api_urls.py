@@ -4,7 +4,10 @@ from django.urls import path
 from .api_views import (
     AdminAcademicOverviewApiView,
     AdminDashboardApiView,
+    AdminLegacyStudentDetailApiView,
+    AdminPortalStudentDetailApiView,
     AdminStudentListApiView,
+    AdminStudentOptionsApiView,
     MeDashboardApiView,
     MeDocumentsApiView,
     MeEdtApiView,
@@ -28,5 +31,12 @@ urlpatterns = [
     path("me/forum/", MeForumApiView.as_view(), name="student_forum"),
     path("dashboard/", AdminDashboardApiView.as_view(), name="admin_dashboard"),
     path("admin/etudiants/", AdminStudentListApiView.as_view(), name="admin_students"),
+    path("admin/etudiants/options/", AdminStudentOptionsApiView.as_view(), name="admin_students_options"),
+    path("admin/etudiants/<int:pk>/", AdminPortalStudentDetailApiView.as_view(), name="admin_students_detail"),
+    path(
+        "admin/etudiants/legacy/<str:matricule>/",
+        AdminLegacyStudentDetailApiView.as_view(),
+        name="admin_students_legacy_detail",
+    ),
     path("admin/scolarite/", AdminAcademicOverviewApiView.as_view(), name="admin_scolarite"),
 ]

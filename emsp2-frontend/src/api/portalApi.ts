@@ -2,7 +2,10 @@ import axiosInstance from "./axiosConfig";
 import type {
   AdminAcademicOverviewData,
   AdminDashboardData,
+  AdminLegacyStudentPayload,
+  AdminPortalStudentPayload,
   AdminStudentsData,
+  AdminStudentOptionsData,
   EtudiantProfile,
   ForumDiscussion,
   NotesSemesterGroup,
@@ -62,11 +65,11 @@ interface RawScheduleItem {
 }
 
 interface RawStudentDashboard {
-  moyenne_generale: number;
+  moyenne_generale: number | string;
   rang_promotion: number;
   prochain_examen: string;
   solde_scolarite: string;
-  trend: Array<{ label: string; average: number }>;
+  trend: Array<{ label: string; average: number | string }>;
   prochains_cours: RawScheduleItem[];
   actualites: Array<{
     id: number;
@@ -91,9 +94,9 @@ interface RawStudentDashboard {
 interface RawNoteRow {
   id: number;
   matiere: string;
-  coefficient: number;
+  coefficient: number | string;
   credits: number;
-  note: number;
+  note: number | string;
   semestre: string;
   annee_academique: string;
   mention: string;
@@ -107,7 +110,7 @@ interface RawNotesGroup {
   academic_year: string;
   rows: RawNoteRow[];
   totals: {
-    average: number;
+    average: number | string;
     credits: number;
     result: string;
   };
@@ -181,6 +184,7 @@ interface RawAdminDashboard {
 }
 
 interface RawAdminStudentsResponse {
+  dataset_mode: "portal" | "legacy";
   summary: {
     total: number;
     active: number;
@@ -191,15 +195,21 @@ interface RawAdminStudentsResponse {
   results: Array<{
     id: number;
     matricule: string;
+    first_name?: string;
+    last_name?: string;
     full_name: string;
     email: string;
     phone?: string;
+    formation_id?: number;
     formation_name: string;
     formation_code: string;
+    promotion_id?: number | null;
     promotion_label: string;
     academic_year: string;
     country: string;
     country_label: string;
+    date_naissance?: string | null;
+    lieu_naissance?: string;
     rank: number;
     balance: number;
     balance_label: string;
@@ -212,6 +222,25 @@ interface RawAdminStudentsResponse {
     age?: number | null;
     hobbies?: string;
     source?: "django_portal" | "emsp_legacy";
+  }>;
+}
+
+interface RawAdminStudentOptionsResponse {
+  formations: Array<{
+    id: number;
+    code: string;
+    name: string;
+  }>;
+  promotions: Array<{
+    id: number;
+    label: string;
+    academic_year: string;
+    formation_id: number;
+    formation_code: string;
+  }>;
+  countries: Array<{
+    value: string;
+    label: string;
   }>;
 }
 
@@ -315,11 +344,14 @@ export async function fetchEtudiantProfile() {
 export async function fetchStudentDashboard() {
   const response = await axiosInstance.get<RawStudentDashboard>("/scolarite/me/dashboard/");
   return {
-    moyenneGenerale: response.data.moyenne_generale,
+    moyenneGenerale: Number(response.data.moyenne_generale),
     rangPromotion: response.data.rang_promotion,
     prochainExamen: response.data.prochain_examen,
     soldeScolarite: response.data.solde_scolarite,
-    trend: response.data.trend,
+    trend: response.data.trend.map((item) => ({
+      label: item.label,
+      average: Number(item.average),
+    })),
     prochainsCours: response.data.prochains_cours.map((item) => ({
       id: item.id,
       matiere: item.matiere,
@@ -366,15 +398,19 @@ export async function fetchStudentNotes() {
         rows: group.rows.map((row) => ({
           id: row.id,
           matiere: row.matiere,
-          coefficient: row.coefficient,
+          coefficient: Number(row.coefficient),
           credits: row.credits,
-          note: row.note,
+          note: Number(row.note),
           semestre: row.semestre,
           anneeAcademique: row.annee_academique,
           mention: row.mention,
           validation: row.validation,
         })),
-        totals: group.totals,
+        totals: {
+          average: Number(group.totals.average),
+          credits: group.totals.credits,
+          result: group.totals.result,
+        },
         downloadUrl: group.download_url,
       }) satisfies NotesSemesterGroup,
   );
@@ -505,6 +541,7 @@ export async function fetchAdminStudents(params?: {
     params,
   });
   return {
+    datasetMode: response.data.dataset_mode,
     summary: {
       total: response.data.summary.total,
       active: response.data.summary.active,
@@ -515,15 +552,21 @@ export async function fetchAdminStudents(params?: {
     results: response.data.results.map((item) => ({
       id: item.id,
       matricule: item.matricule,
+      firstName: item.first_name,
+      lastName: item.last_name,
       fullName: item.full_name,
       email: item.email,
       phone: item.phone,
+      formationId: item.formation_id,
       formationName: item.formation_name,
       formationCode: item.formation_code,
+      promotionId: item.promotion_id,
       promotionLabel: item.promotion_label,
       academicYear: item.academic_year,
       country: item.country,
       countryLabel: item.country_label,
+      dateNaissance: item.date_naissance,
+      lieuNaissance: item.lieu_naissance,
       rank: item.rank,
       balance: item.balance,
       balanceLabel: item.balance_label,
@@ -538,6 +581,87 @@ export async function fetchAdminStudents(params?: {
       source: item.source,
     })),
   } satisfies AdminStudentsData;
+}
+
+export async function fetchAdminStudentOptions() {
+  const response = await axiosInstance.get<RawAdminStudentOptionsResponse>("/scolarite/admin/etudiants/options/");
+  return {
+    formations: response.data.formations.map((item) => ({
+      id: item.id,
+      code: item.code,
+      name: item.name,
+    })),
+    promotions: response.data.promotions.map((item) => ({
+      id: item.id,
+      label: item.label,
+      academicYear: item.academic_year,
+      formationId: item.formation_id,
+      formationCode: item.formation_code,
+    })),
+    countries: response.data.countries,
+  } satisfies AdminStudentOptionsData;
+}
+
+export async function createAdminStudent(payload: AdminLegacyStudentPayload | AdminPortalStudentPayload) {
+  const response = await axiosInstance.post("/scolarite/admin/etudiants/", {
+    matricule: payload.matricule,
+    ...(Object.prototype.hasOwnProperty.call(payload, "fullName")
+      ? {
+          full_name: (payload as AdminLegacyStudentPayload).fullName,
+          gender: (payload as AdminLegacyStudentPayload).gender,
+          age: (payload as AdminLegacyStudentPayload).age,
+          phone: (payload as AdminLegacyStudentPayload).phone,
+          hobbies: (payload as AdminLegacyStudentPayload).hobbies,
+        }
+      : {
+          first_name: (payload as AdminPortalStudentPayload).firstName,
+          last_name: (payload as AdminPortalStudentPayload).lastName,
+          email: (payload as AdminPortalStudentPayload).email,
+          phone: (payload as AdminPortalStudentPayload).phone,
+          formation_id: (payload as AdminPortalStudentPayload).formationId,
+          promotion_id: (payload as AdminPortalStudentPayload).promotionId || null,
+          pays: (payload as AdminPortalStudentPayload).pays,
+          date_naissance: (payload as AdminPortalStudentPayload).dateNaissance || null,
+          lieu_naissance: (payload as AdminPortalStudentPayload).lieuNaissance || "",
+          rang_promotion: (payload as AdminPortalStudentPayload).rangPromotion,
+          solde_scolarite: (payload as AdminPortalStudentPayload).soldeScolarite,
+          is_active: (payload as AdminPortalStudentPayload).isActive,
+          password: (payload as AdminPortalStudentPayload).password || undefined,
+        }),
+  });
+  return response.data;
+}
+
+export async function updateAdminLegacyStudent(matricule: string, payload: AdminLegacyStudentPayload) {
+  const response = await axiosInstance.patch(`/scolarite/admin/etudiants/legacy/${encodeURIComponent(matricule)}/`, {
+    matricule: payload.matricule,
+    full_name: payload.fullName,
+    gender: payload.gender,
+    age: payload.age,
+    phone: payload.phone,
+    hobbies: payload.hobbies,
+  });
+  return response.data;
+}
+
+export async function updateAdminPortalStudent(id: number, payload: AdminPortalStudentPayload) {
+  const response = await axiosInstance.patch(`/scolarite/admin/etudiants/${id}/`, {
+    first_name: payload.firstName,
+    last_name: payload.lastName,
+    email: payload.email,
+    phone: payload.phone,
+    matricule: payload.matricule,
+    formation_id: payload.formationId,
+    promotion_id: payload.promotionId || null,
+    pays: payload.pays,
+    date_naissance: payload.dateNaissance || null,
+    lieu_naissance: payload.lieuNaissance || "",
+    rang_promotion: payload.rangPromotion,
+    solde_scolarite: payload.soldeScolarite,
+    is_active: payload.isActive,
+    password: payload.password || undefined,
+  });
+  return response.data;
 }
 
 export async function fetchAdminAcademicOverview() {

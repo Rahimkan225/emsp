@@ -31,3 +31,12 @@ class IsAdminFamily(BasePermission):
             and request.user.is_authenticated
             and request.user.role in ["staff", "compta", "admin", "direction"]
         )
+
+
+class IsFullAdminAccess(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role in ["staff", "compta", "admin"]
+        )

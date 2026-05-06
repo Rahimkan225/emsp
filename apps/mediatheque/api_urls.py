@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsStaffOrAdmin
+from apps.accounts.permissions import IsFullAdminAccess
 
 from .models import MediaItem
 from .serializers import MediaItemAdminSerializer, MediaItemSerializer
@@ -53,7 +53,7 @@ def media_detail_api(request, pk):
 
 
 class MediaAdminListApi(APIView):
-    permission_classes = [IsStaffOrAdmin]
+    permission_classes = [IsFullAdminAccess]
 
     def get(self, request):
         queryset = MediaItem.objects.all().order_by("-created_at")
@@ -79,7 +79,7 @@ class MediaAdminListApi(APIView):
 
 
 class MediaAdminDetailApi(APIView):
-    permission_classes = [IsStaffOrAdmin]
+    permission_classes = [IsFullAdminAccess]
 
     def get_object(self, pk):
         return MediaItem.objects.filter(pk=pk).first()

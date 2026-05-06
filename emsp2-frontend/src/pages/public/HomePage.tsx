@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight, Globe2, GraduationCap, Laptop, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -137,6 +137,43 @@ const fallbackMemberCountries = [
   "Togo",
 ];
 
+const partnerLogoModules = import.meta.glob("../../../../logopartenaire/*.{png,jpg,jpeg,svg,webp}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+
+const formatPartnerTitle = (path: string) =>
+  path
+    .split(/[\\/]/)
+    .pop()
+    ?.replace(/\.(png|jpe?g|svg|webp)$/gi, "")
+    .replace(/[_()]+/g, " ")
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim() || "Partenaire EMSP";
+
+const rootPartnerLogos = Object.entries(partnerLogoModules)
+  .sort(([left], [right]) => left.localeCompare(right))
+  .map(([path, url], index) => ({
+    id: -(index + 2000),
+    title: formatPartnerTitle(path),
+    url,
+    altText: formatPartnerTitle(path),
+    type: "image" as const,
+    category: "partenaires",
+    createdAt: "",
+  }));
+
+const chunkItems = <T,>(items: T[], size: number) => {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
+};
+
 const HomePage = () => {
   const { data: site } = useSiteConfig();
   const { data: heroImages = [] } = useMedia("hero", "image");
@@ -146,7 +183,9 @@ const HomePage = () => {
   const { data: news = [] } = useNews({ limit: 3 });
 
   const [activeSlide, setActiveSlide] = useState(0);
+  const [activePartnerSlide, setActivePartnerSlide] = useState(0);
   const [hoveringHero, setHoveringHero] = useState(false);
+  const [hoveringPartners, setHoveringPartners] = useState(false);
   const [visibleStats, setVisibleStats] = useState<number[]>(stats.map(() => 0));
   const statsRef = useRef<HTMLElement | null>(null);
 
@@ -163,23 +202,19 @@ const HomePage = () => {
     },
     [heroImages],
   );
-  const partnerRows = useMemo(() => {
-    const activePartners = partnerImages.filter((item) => item.url);
+  const partnerSlides = useMemo(() => {
+    const mergedPartners = [...rootPartnerLogos, ...partnerImages.filter((item) => item.url)];
+    const seenUrls = new Set<string>();
+    const uniquePartners = mergedPartners.filter((item) => {
+      if (seenUrls.has(item.url)) {
+        return false;
+      }
 
-    if (!activePartners.length) {
-      return {
-        firstRow: [],
-        secondRow: [],
-      };
-    }
+      seenUrls.add(item.url);
+      return true;
+    });
 
-    const firstRow = activePartners.filter((_, index) => index % 2 === 0);
-    const secondRow = activePartners.filter((_, index) => index % 2 === 1);
-
-    return {
-      firstRow: firstRow.length ? firstRow : activePartners,
-      secondRow: secondRow.length ? secondRow : activePartners,
-    };
+    return chunkItems(uniquePartners, 6);
   }, [partnerImages]);
   const memberCountries = useMemo(() => {
     const activeFlags = flagImages.filter((item) => item.url).slice(0, 8);
@@ -211,6 +246,23 @@ const HomePage = () => {
     }, 5000);
     return () => window.clearInterval(id);
   }, [heroSlides.length, hoveringHero]);
+
+  useEffect(() => {
+    if (partnerSlides.length <= 1 || hoveringPartners) return;
+    const id = window.setInterval(() => {
+      setActivePartnerSlide((prev) => (prev + 1) % partnerSlides.length);
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [hoveringPartners, partnerSlides.length]);
+
+  useEffect(() => {
+    if (!partnerSlides.length) {
+      setActivePartnerSlide(0);
+      return;
+    }
+
+    setActivePartnerSlide((prev) => (prev >= partnerSlides.length ? 0 : prev));
+  }, [partnerSlides.length]);
 
   useEffect(() => {
     if (!statsRef.current) return;
@@ -654,44 +706,83 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="mt-12 rounded-[36px] border border-slate-200 bg-white px-4 py-8 shadow-[0_32px_90px_-55px_rgba(15,23,42,0.35)] sm:px-6 lg:px-8">
-            {partnerRows.firstRow.length > 0 ? (
-              <div className="space-y-8">
-                <div className="overflow-hidden">
-                  <div className="flex w-max animate-marquee gap-6">
-                    {[...partnerRows.firstRow, ...partnerRows.firstRow].map((item, index) => (
-                      <div
-                        key={`partner-row-1-${item.id}-${index}`}
-                        className="flex h-32 w-[220px] shrink-0 items-center justify-center rounded-[28px] border border-slate-100 bg-white px-6 py-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                      >
-                        <img src={item.url} alt={item.altText || item.title} className="max-h-20 w-auto object-contain" />
-                      </div>
-                    ))}
+          <div
+            className="mt-12 rounded-[36px] border border-slate-200 bg-white px-4 py-8 shadow-[0_32px_90px_-55px_rgba(15,23,42,0.35)] sm:px-6 lg:px-8"
+            onMouseEnter={() => setHoveringPartners(true)}
+            onMouseLeave={() => setHoveringPartners(false)}
+          >
+            {partnerSlides.length > 0 ? (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-secondary">Reseau partenaire</p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Les logos defilent automatiquement toutes les 5 secondes depuis le dossier racine `logopartenaire`.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      aria-label="Slide partenaires precedent"
+                      className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-secondary hover:text-secondary"
+                      onClick={() => setActivePartnerSlide((prev) => (prev - 1 + partnerSlides.length) % partnerSlides.length)}
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      aria-label="Slide partenaires suivant"
+                      className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-secondary hover:text-secondary"
+                      onClick={() => setActivePartnerSlide((prev) => (prev + 1) % partnerSlides.length)}
+                    >
+                      <ChevronRight size={18} />
+                    </button>
                   </div>
                 </div>
 
-                <div className="overflow-hidden">
-                  <div className="flex w-max animate-marquee-reverse gap-6">
-                    {[...partnerRows.secondRow, ...partnerRows.secondRow].map((item, index) => (
-                      <div
-                        key={`partner-row-2-${item.id}-${index}`}
-                        className="flex h-32 w-[220px] shrink-0 items-center justify-center rounded-[28px] border border-slate-100 bg-white px-6 py-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                      >
-                        <img src={item.url} alt={item.altText || item.title} className="max-h-20 w-auto object-contain" />
-                      </div>
+                <div className="relative mt-8 min-h-[420px] overflow-hidden sm:min-h-[320px]">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`partners-${activePartnerSlide}`}
+                      initial={{ opacity: 0, x: 36 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -36 }}
+                      transition={{ duration: 0.45, ease: "easeOut" }}
+                      className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                    >
+                      {partnerSlides[activePartnerSlide].map((item, index) => (
+                        <motion.article
+                          key={item.id}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="group flex min-h-[126px] items-center justify-center rounded-[28px] border border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-6 py-5 shadow-sm transition hover:-translate-y-1 hover:border-secondary/20 hover:shadow-[0_24px_50px_-30px_rgba(34,197,94,0.35)]"
+                        >
+                          <img
+                            src={item.url}
+                            alt={item.altText || item.title}
+                            className="max-h-20 w-auto object-contain transition duration-300 group-hover:scale-[1.03]"
+                          />
+                        </motion.article>
+                      ))}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {partnerSlides.length > 1 ? (
+                  <div className="mt-8 flex items-center justify-center gap-2">
+                    {partnerSlides.map((_, index) => (
+                      <button
+                        key={`partner-dot-${index}`}
+                        aria-label={`Aller au groupe partenaire ${index + 1}`}
+                        className={`h-2.5 rounded-full transition ${index === activePartnerSlide ? "w-10 bg-secondary" : "w-2.5 bg-slate-300 hover:bg-slate-400"}`}
+                        onClick={() => setActivePartnerSlide(index)}
+                      />
                     ))}
                   </div>
-                </div>
-              </div>
+                ) : null}
+              </>
             ) : (
-              <div className="py-10 text-center text-sm text-slate-500">Aucun partenaire disponible depuis l'API.</div>
+              <div className="py-10 text-center text-sm text-slate-500">Aucun partenaire disponible pour le moment.</div>
             )}
-
-            {partnerRows.firstRow.length > 0 ? (
-              <div className="mt-8 text-center text-sm text-slate-500">
-                Ajoute ou remplace des logos dans la categorie <span className="font-semibold text-secondary">partenaires</span> depuis la mediatheque admin.
-              </div>
-            ) : null}
           </div>
         </div>
       </section>

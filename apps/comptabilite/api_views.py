@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.db.models import Q, Sum
 from django.utils import timezone
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,12 +20,19 @@ def health(request):
     return JsonResponse({"app": "comptabilite", "status": "ok"})
 
 
+def _student_for_user(user):
+    student = Etudiant.objects.filter(user=user).first()
+    if student is None:
+        raise NotFound("Aucun profil etudiant n'est lie a ce compte.")
+    return student
+
+
 class MePaiementsApiView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
     def get(self, request):
         ensure_portal_demo_data()
-        student = Etudiant.objects.get(user=request.user)
+        student = _student_for_user(request.user)
         transactions = Paiement.objects.filter(etudiant=student).order_by("-created_at")
         amount_paid = _sum_decimal(transactions.filter(statut="confirmed"), "montant")
         payload = {
@@ -41,7 +49,7 @@ class InitiatePaiementApiView(APIView):
 
     def post(self, request):
         ensure_portal_demo_data()
-        student = Etudiant.objects.get(user=request.user)
+        student = _student_for_user(request.user)
         serializer = PaiementInitiateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

@@ -3,9 +3,12 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/common/Layout";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import { getAdminHomePath, fullAdminRoles, limitedAdminRoles } from "./config/adminPortal";
+import { useAuth } from "./hooks/useAuth";
 import AdminPortalLayout from "./layouts/portal/AdminPortalLayout";
 import StudentPortalLayout from "./layouts/portal/StudentPortalLayout";
 import LoginPage from "./pages/auth/LoginPage";
+import RegisterPortalPage from "./pages/auth/RegisterPortalPage";
 import UnauthorizedPage from "./pages/auth/UnauthorizedPage";
 import ActualiteDetailPage from "./pages/public/ActualiteDetailPage";
 import ActualitesPage from "./pages/public/ActualitesPage";
@@ -29,14 +32,22 @@ const AdminAccountingPage = lazy(() => import("./pages/portal/admin/AdminAccount
 const AdminDashboardPage = lazy(() => import("./pages/portal/admin/AdminDashboardPage"));
 const AdminMediaLibraryPage = lazy(() => import("./pages/portal/admin/AdminMediaLibraryPage"));
 const AdminNewsPage = lazy(() => import("./pages/portal/admin/AdminNewsPage"));
+const AdminApplicationsPage = lazy(() => import("./pages/portal/admin/AdminApplicationsPage"));
 const AdminSettingsPage = lazy(() => import("./pages/portal/admin/AdminSettingsPage"));
 const AdminStatisticsPage = lazy(() => import("./pages/portal/admin/AdminStatisticsPage"));
 const AdminStudentsPage = lazy(() => import("./pages/portal/admin/AdminStudentsPage"));
+const AdminTeachersPage = lazy(() => import("./pages/portal/admin/AdminTeachersPage"));
+
+const AdminIndexRedirect = () => {
+  const { user } = useAuth();
+  return <Navigate to={getAdminHomePath(user?.role)} replace />;
+};
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPortalPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       <Route element={<Layout />}>
@@ -68,18 +79,24 @@ function App() {
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["staff", "compta", "admin", "direction"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={limitedAdminRoles} />}>
         <Route path="/admin" element={<AdminPortalLayout />}>
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route index element={<AdminIndexRedirect />} />
+
           <Route path="etudiants" element={<AdminStudentsPage />} />
           <Route path="scolarite" element={<AdminAcademicPage />} />
           <Route path="comptabilite" element={<AdminAccountingPage />} />
-          <Route path="statistiques" element={<AdminStatisticsPage />} />
-          <Route path="medias" element={<Navigate to="/admin/mediatheque" replace />} />
-          <Route path="mediatheque" element={<AdminMediaLibraryPage />} />
-          <Route path="actualites" element={<AdminNewsPage />} />
-          <Route path="parametres" element={<AdminSettingsPage />} />
+
+          <Route element={<ProtectedRoute allowedRoles={fullAdminRoles} />}>
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="candidatures" element={<AdminApplicationsPage />} />
+            <Route path="enseignants" element={<AdminTeachersPage />} />
+            <Route path="statistiques" element={<AdminStatisticsPage />} />
+            <Route path="medias" element={<Navigate to="/admin/mediatheque" replace />} />
+            <Route path="mediatheque" element={<AdminMediaLibraryPage />} />
+            <Route path="actualites" element={<AdminNewsPage />} />
+            <Route path="parametres" element={<AdminSettingsPage />} />
+          </Route>
         </Route>
       </Route>
 

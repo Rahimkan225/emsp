@@ -1,18 +1,21 @@
 from collections import defaultdict
 from decimal import Decimal
 
-from django.db import connection
+from django.contrib.auth import get_user_model
+from django.db import connection, transaction
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from rest_framework import serializers, status
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdminFamily, IsStudent
+from apps.accounts.permissions import IsAdminFamily, IsFullAdminAccess, IsStudent
 from apps.actualites.models import Article
 from apps.actualites.serializers import ArticleListSerializer
 from apps.comptabilite.models import Paiement
+from apps.formations.models import Filiere
 from apps.inscriptions.models import Candidature
 
 from .demo import ensure_portal_demo_data
@@ -25,6 +28,8 @@ from .serializers import (
     StudentDocumentSerializer,
 )
 
+User = get_user_model()
+
 
 class ForumCreateSerializer(serializers.Serializer):
     category = serializers.ChoiceField(choices=[choice[0] for choice in ForumPost.CATEGORY_CHOICES])
@@ -32,8 +37,94 @@ class ForumCreateSerializer(serializers.Serializer):
     content = serializers.CharField()
 
 
+class LegacyStudentWriteSerializer(serializers.Serializer):
+    matricule = serializers.CharField(max_length=10)
+    full_name = serializers.CharField(max_length=100)
+    gender = serializers.ChoiceField(
+        choices=[("M", "Masculin"), ("F", "Feminin")],
+        required=False,
+        allow_blank=True,
+    )
+    age = serializers.IntegerField(required=False, allow_null=True, min_value=0, max_value=120)
+    phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    hobbies = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_matricule(self, value):
+        return value.strip().upper()
+
+    def validate_full_name(self, value):
+        return " ".join(value.split())
+
+
+class PortalStudentWriteSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    matricule = serializers.CharField(max_length=20)
+    formation_id = serializers.IntegerField()
+    promotion_id = serializers.IntegerField(required=False, allow_null=True)
+    pays = serializers.ChoiceField(choices=[choice[0] for choice in Etudiant.PAYS_MEMBRES])
+    date_naissance = serializers.DateField(required=False, allow_null=True)
+    lieu_naissance = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    rang_promotion = serializers.IntegerField(required=False, min_value=1, default=1)
+    solde_scolarite = serializers.DecimalField(
+        required=False,
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    is_active = serializers.BooleanField(required=False, default=True)
+    password = serializers.CharField(required=False, allow_blank=True, write_only=True)
+
+    def validate_matricule(self, value):
+        return value.strip().upper()
+
+    def validate(self, attrs):
+        student = self.context.get("student")
+        current_user = student.user if student else None
+
+        formation = Filiere.objects.filter(pk=attrs["formation_id"]).first()
+        if formation is None:
+            raise serializers.ValidationError({"formation_id": "La filiere selectionnee est introuvable."})
+        attrs["formation"] = formation
+
+        promotion = None
+        promotion_id = attrs.get("promotion_id")
+        if promotion_id:
+            promotion = Promotion.objects.select_related("formation").filter(pk=promotion_id).first()
+            if promotion is None:
+                raise serializers.ValidationError({"promotion_id": "La promotion selectionnee est introuvable."})
+            if promotion.formation_id != formation.id:
+                raise serializers.ValidationError(
+                    {"promotion_id": "La promotion ne correspond pas a la filiere choisie."}
+                )
+        attrs["promotion"] = promotion
+
+        email = attrs["email"].strip().lower()
+        existing_user = User.objects.filter(email__iexact=email)
+        if current_user is not None:
+            existing_user = existing_user.exclude(pk=current_user.pk)
+        if existing_user.exists():
+            raise serializers.ValidationError({"email": "Un compte existe deja avec cet email."})
+
+        existing_student = Etudiant.objects.filter(matricule__iexact=attrs["matricule"])
+        if student is not None:
+            existing_student = existing_student.exclude(pk=student.pk)
+        if existing_student.exists():
+            raise serializers.ValidationError({"matricule": "Ce matricule existe deja."})
+
+        attrs["email"] = email
+        attrs["username"] = email
+        attrs["password"] = attrs.get("password") or "emsp12345"
+        return attrs
+
+
 def _student_for_user(user):
-    return Etudiant.objects.select_related("user", "formation", "promotion", "photo").get(user=user)
+    student = Etudiant.objects.select_related("user", "formation", "promotion", "photo").filter(user=user).first()
+    if student is None:
+        raise NotFound("Aucun profil etudiant n'est lie a ce compte.")
+    return student
 
 
 def _weighted_average(notes):
@@ -71,42 +162,130 @@ def _format_legacy_gender(value):
     }.get(normalized, "Non renseigne")
 
 
+def _empty_students_payload(dataset_mode):
+    return {
+        "dataset_mode": dataset_mode,
+        "summary": {
+            "total": 0,
+            "active": 0,
+            "inactive": 0,
+            "promotions": 0,
+            "outstanding_balance": 0,
+        },
+        "results": [],
+    }
+
+
+def _serialize_legacy_student(row, index):
+    return {
+        "id": index,
+        "matricule": row.get("matricule", ""),
+        "full_name": row.get("nom") or row.get("matricule", ""),
+        "email": "",
+        "phone": row.get("contact") or "",
+        "formation_name": "Base etudiant EMSP",
+        "formation_code": "EMSP",
+        "promotion_label": "",
+        "academic_year": "",
+        "country": "EMSP",
+        "country_label": "Base EMSP",
+        "rank": 0,
+        "balance": 0,
+        "balance_label": _format_currency(Decimal("0.00")),
+        "is_active": True,
+        "status_label": "Disponible",
+        "enrolled_at": "",
+        "photo_url": "",
+        "gender": (row.get("sexe") or "").strip().upper(),
+        "gender_label": _format_legacy_gender(row.get("sexe")),
+        "age": row.get("age"),
+        "hobbies": row.get("hobbies") or "",
+        "source": "emsp_legacy",
+    }
+
+
+def _serialize_portal_student(request, student):
+    return {
+        "id": student.id,
+        "matricule": student.matricule,
+        "first_name": student.user.first_name,
+        "last_name": student.user.last_name,
+        "full_name": student.user.full_name,
+        "email": student.user.email,
+        "phone": student.user.phone,
+        "formation_id": student.formation_id,
+        "formation_name": student.formation.nom,
+        "formation_code": student.formation.code,
+        "promotion_id": student.promotion_id,
+        "promotion_label": student.promotion.label if student.promotion else "",
+        "academic_year": student.promotion.academic_year if student.promotion else "",
+        "country": student.pays,
+        "country_label": student.get_pays_display(),
+        "date_naissance": student.date_naissance,
+        "lieu_naissance": student.lieu_naissance,
+        "rank": student.rang_promotion,
+        "balance": float(student.solde_scolarite),
+        "balance_label": _format_currency(student.solde_scolarite),
+        "is_active": student.is_active,
+        "status_label": "Actif" if student.is_active else "Suspendu",
+        "enrolled_at": student.enrolled_at,
+        "photo_url": _media_url(request, student.photo),
+        "gender": "",
+        "gender_label": "",
+        "age": None,
+        "hobbies": "",
+        "source": "django_portal",
+    }
+
+
+def _legacy_student_exists(matricule, exclude_matricule=None):
+    params = [matricule]
+    sql = "SELECT matricule FROM etudiant WHERE matricule = %s"
+    if exclude_matricule:
+        sql += " AND matricule <> %s"
+        params.append(exclude_matricule)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, params)
+        return cursor.fetchone() is not None
+
+
+def _student_form_options_payload():
+    return {
+        "formations": [
+            {
+                "id": formation.id,
+                "code": formation.code,
+                "name": formation.nom,
+            }
+            for formation in Filiere.objects.order_by("ordre", "code")
+        ],
+        "promotions": [
+            {
+                "id": promotion.id,
+                "label": promotion.label,
+                "academic_year": promotion.academic_year,
+                "formation_id": promotion.formation_id,
+                "formation_code": promotion.formation.code,
+            }
+            for promotion in Promotion.objects.select_related("formation").order_by("-year_start", "label")
+        ],
+        "countries": [
+            {"value": code, "label": label}
+            for code, label in Etudiant.PAYS_MEMBRES
+        ],
+    }
+
+
 def _build_legacy_students_response(search="", status_filter="", country="", formation=""):
     if status_filter == "inactive":
-        return {
-            "summary": {
-                "total": 0,
-                "active": 0,
-                "inactive": 0,
-                "promotions": 0,
-                "outstanding_balance": 0,
-            },
-            "results": [],
-        }
+        return _empty_students_payload("legacy")
 
     if country and country not in {"EMSP", "LEGACY"}:
-        return {
-            "summary": {
-                "total": 0,
-                "active": 0,
-                "inactive": 0,
-                "promotions": 0,
-                "outstanding_balance": 0,
-            },
-            "results": [],
-        }
+        return _empty_students_payload("legacy")
 
     if formation and "emsp" not in formation.lower() and "legacy" not in formation.lower():
-        return {
-            "summary": {
-                "total": 0,
-                "active": 0,
-                "inactive": 0,
-                "promotions": 0,
-                "outstanding_balance": 0,
-            },
-            "results": [],
-        }
+        return _empty_students_payload("legacy")
 
     sql = "SELECT matricule, nom, sexe, age, contact, hobbies FROM etudiant"
     params = []
@@ -130,6 +309,7 @@ def _build_legacy_students_response(search="", status_filter="", country="", for
         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     return {
+        "dataset_mode": "legacy",
         "summary": {
             "total": len(rows),
             "active": len(rows),
@@ -137,34 +317,7 @@ def _build_legacy_students_response(search="", status_filter="", country="", for
             "promotions": 1 if rows else 0,
             "outstanding_balance": 0,
         },
-        "results": [
-            {
-                "id": index,
-                "matricule": row.get("matricule", ""),
-                "full_name": row.get("nom") or row.get("matricule", ""),
-                "email": "",
-                "phone": row.get("contact") or "",
-                "formation_name": "Base etudiant EMSP",
-                "formation_code": "EMSP",
-                "promotion_label": "",
-                "academic_year": "",
-                "country": "EMSP",
-                "country_label": "Base EMSP",
-                "rank": 0,
-                "balance": 0,
-                "balance_label": _format_currency(Decimal("0.00")),
-                "is_active": True,
-                "status_label": "Disponible",
-                "enrolled_at": "",
-                "photo_url": "",
-                "gender": (row.get("sexe") or "").strip().upper(),
-                "gender_label": _format_legacy_gender(row.get("sexe")),
-                "age": row.get("age"),
-                "hobbies": row.get("hobbies") or "",
-                "source": "emsp_legacy",
-            }
-            for index, row in enumerate(rows, start=1)
-        ],
+        "results": [_serialize_legacy_student(row, index) for index, row in enumerate(rows, start=1)],
     }
 
 
@@ -354,8 +507,16 @@ class MeForumApiView(APIView):
         return Response(ForumPostSerializer(post).data, status=status.HTTP_201_CREATED)
 
 
-class AdminDashboardApiView(APIView):
+class AdminStudentOptionsApiView(APIView):
     permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        ensure_portal_demo_data()
+        return Response(_student_form_options_payload())
+
+
+class AdminDashboardApiView(APIView):
+    permission_classes = [IsAuthenticated, IsFullAdminAccess]
 
     def get(self, request):
         if _table_exists("etudiant"):
@@ -531,6 +692,7 @@ class AdminStudentListApiView(APIView):
 
         return Response(
             {
+                "dataset_mode": "portal",
                 "summary": {
                     "total": len(students),
                     "active": len([student for student in students if student.is_active]),
@@ -538,34 +700,189 @@ class AdminStudentListApiView(APIView):
                     "promotions": len({student.promotion_id for student in students if student.promotion_id}),
                     "outstanding_balance": float(outstanding_balance),
                 },
-                "results": [
-                    {
-                        "id": student.id,
-                        "matricule": student.matricule,
-                        "full_name": student.user.full_name,
-                        "email": student.user.email,
-                        "phone": student.user.phone,
-                        "formation_name": student.formation.nom,
-                        "formation_code": student.formation.code,
-                        "promotion_label": student.promotion.label if student.promotion else "",
-                        "academic_year": student.promotion.academic_year if student.promotion else "",
-                        "country": student.pays,
-                        "country_label": student.get_pays_display(),
-                        "rank": student.rang_promotion,
-                        "balance": float(student.solde_scolarite),
-                        "balance_label": _format_currency(student.solde_scolarite),
-                        "is_active": student.is_active,
-                        "status_label": "Actif" if student.is_active else "Suspendu",
-                        "enrolled_at": student.enrolled_at,
-                        "photo_url": _media_url(request, student.photo),
-                        "gender": "",
-                        "gender_label": "",
-                        "age": None,
-                        "hobbies": "",
-                        "source": "django_portal",
-                    }
-                    for student in students
+                "results": [_serialize_portal_student(request, student) for student in students],
+            }
+        )
+
+    def post(self, request):
+        if _table_exists("etudiant"):
+            serializer = LegacyStudentWriteSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            payload = serializer.validated_data
+
+            if _legacy_student_exists(payload["matricule"]):
+                raise serializers.ValidationError(
+                    {"matricule": "Ce matricule existe deja dans la base legacy."}
+                )
+
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO etudiant (matricule, nom, sexe, age, contact, hobbies)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    """,
+                    [
+                        payload["matricule"],
+                        payload["full_name"],
+                        payload.get("gender", ""),
+                        payload.get("age"),
+                        payload.get("phone", ""),
+                        payload.get("hobbies", ""),
+                    ],
+                )
+
+            return Response(
+                {
+                    "detail": "Etudiant ajoute avec succes dans la base legacy.",
+                    "student": {
+                        "matricule": payload["matricule"],
+                        "full_name": payload["full_name"],
+                    },
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        ensure_portal_demo_data()
+        serializer = PortalStudentWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+
+        with transaction.atomic():
+            user = User(
+                username=payload["username"],
+                email=payload["email"],
+                first_name=payload["first_name"],
+                last_name=payload["last_name"],
+                role="etudiant",
+                phone=payload.get("phone", ""),
+            )
+            user.set_password(payload["password"])
+            user.save()
+
+            student = Etudiant.objects.create(
+                user=user,
+                matricule=payload["matricule"],
+                formation=payload["formation"],
+                promotion=payload["promotion"],
+                pays=payload["pays"],
+                date_naissance=payload.get("date_naissance"),
+                lieu_naissance=payload.get("lieu_naissance", ""),
+                rang_promotion=payload.get("rang_promotion", 1),
+                solde_scolarite=payload.get("solde_scolarite", Decimal("0.00")),
+                is_active=payload.get("is_active", True),
+            )
+
+        return Response(
+            {
+                "detail": "Etudiant ajoute avec succes.",
+                "initial_password": payload["password"],
+                "student": _serialize_portal_student(request, student),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminLegacyStudentDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def patch(self, request, matricule):
+        if not _table_exists("etudiant"):
+            raise NotFound("La table legacy `etudiant` n'est pas disponible.")
+
+        current_matricule = matricule.strip().upper()
+        if not _legacy_student_exists(current_matricule):
+            raise NotFound("Cet etudiant legacy est introuvable.")
+
+        serializer = LegacyStudentWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+
+        if payload["matricule"] != current_matricule and _legacy_student_exists(
+            payload["matricule"],
+            exclude_matricule=current_matricule,
+        ):
+            raise serializers.ValidationError(
+                {"matricule": "Ce matricule existe deja dans la base legacy."}
+            )
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE etudiant
+                SET matricule = %s, nom = %s, sexe = %s, age = %s, contact = %s, hobbies = %s
+                WHERE matricule = %s
+                """,
+                [
+                    payload["matricule"],
+                    payload["full_name"],
+                    payload.get("gender", ""),
+                    payload.get("age"),
+                    payload.get("phone", ""),
+                    payload.get("hobbies", ""),
+                    current_matricule,
                 ],
+            )
+
+        return Response(
+            {
+                "detail": "Etudiant legacy mis a jour avec succes.",
+                "student": {
+                    "matricule": payload["matricule"],
+                    "full_name": payload["full_name"],
+                },
+            }
+        )
+
+
+class AdminPortalStudentDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get_object(self, pk):
+        ensure_portal_demo_data()
+        student = (
+            Etudiant.objects.select_related("user", "formation", "promotion", "photo")
+            .filter(pk=pk)
+            .first()
+        )
+        if student is None:
+            raise NotFound("Cet etudiant est introuvable.")
+        return student
+
+    def patch(self, request, pk):
+        student = self.get_object(pk)
+        serializer = PortalStudentWriteSerializer(
+            data=request.data,
+            context={"student": student},
+        )
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+
+        with transaction.atomic():
+            user = student.user
+            user.username = payload["username"]
+            user.email = payload["email"]
+            user.first_name = payload["first_name"]
+            user.last_name = payload["last_name"]
+            user.phone = payload.get("phone", "")
+            if str(request.data.get("password", "")).strip():
+                user.set_password(payload["password"])
+            user.save()
+
+            student.matricule = payload["matricule"]
+            student.formation = payload["formation"]
+            student.promotion = payload["promotion"]
+            student.pays = payload["pays"]
+            student.date_naissance = payload.get("date_naissance")
+            student.lieu_naissance = payload.get("lieu_naissance", "")
+            student.rang_promotion = payload.get("rang_promotion", 1)
+            student.solde_scolarite = payload.get("solde_scolarite", Decimal("0.00"))
+            student.is_active = payload.get("is_active", True)
+            student.save()
+
+        return Response(
+            {
+                "detail": "Etudiant mis a jour avec succes.",
+                "student": _serialize_portal_student(request, student),
             }
         )
 

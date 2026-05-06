@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 
 import SurfaceCard from "../../../components/dashboard/SurfaceCard";
-import { useStudentNotes } from "../../../hooks/useStudentPortal";
+import { useEtudiantMe, useStudentNotes } from "../../../hooks/useStudentPortal";
+import { downloadNotesReport } from "../../../utils/studentPortal";
 
 const StudentNotesPage = () => {
+  const { data: profile } = useEtudiantMe();
   const { data = [], isLoading } = useStudentNotes();
   const [activeKey, setActiveKey] = useState("");
 
@@ -25,6 +27,9 @@ const StudentNotesPage = () => {
       <SurfaceCard className="p-6">
         <p className="text-sm uppercase tracking-[0.24em] text-secondary">Notes</p>
         <h1 className="mt-2 font-display text-3xl font-bold text-dark">Resultats par semestre</h1>
+        <p className="mt-3 text-sm text-slate-600">
+          {profile ? `${profile.user.firstName} ${profile.user.lastName} - ${profile.matricule}` : "Vos notes sont chargees depuis l'espace etudiant."}
+        </p>
         <div className="mt-6 flex flex-wrap gap-3">
           {data.map((item) => (
             <button
@@ -81,7 +86,10 @@ const StudentNotesPage = () => {
       </SurfaceCard>
 
       <div className="flex justify-end">
-        <button className="rounded-2xl bg-secondary px-5 py-3 font-semibold text-white">
+        <button
+          onClick={() => downloadNotesReport(currentGroup)}
+          className="rounded-2xl bg-secondary px-5 py-3 font-semibold text-white"
+        >
           Telecharger le releve de notes
         </button>
       </div>

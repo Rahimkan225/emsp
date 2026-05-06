@@ -4,6 +4,12 @@ import { FormEvent, useState } from "react";
 import SurfaceCard from "../../../components/dashboard/SurfaceCard";
 import { useInitiateStudentPayment, useStudentPayments } from "../../../hooks/useStudentPortal";
 
+const operatorLabels = {
+  orange: "Orange Money",
+  mtn: "MTN MoMo",
+  wave: "Wave",
+};
+
 const StudentPaymentsPage = () => {
   const { data, isLoading } = useStudentPayments();
   const paymentMutation = useInitiateStudentPayment();
@@ -31,7 +37,7 @@ const StudentPaymentsPage = () => {
     <div className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-3">
         {[
-          { label: "Montant du", value: data.amountDue },
+          { label: "Solde actuel", value: data.amountDue },
           { label: "Montant paye", value: data.amountPaid },
           { label: "Solde restant", value: data.remainingBalance },
         ].map((item) => (
@@ -65,27 +71,35 @@ const StudentPaymentsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.transactions.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-5 py-4 text-slate-600">{new Date(item.createdAt).toLocaleString("fr-FR")}</td>
-                  <td className="px-5 py-4 font-medium text-dark">{item.montant.toLocaleString("fr-FR")} FCFA</td>
-                  <td className="px-5 py-4 text-slate-600">{item.operateur}</td>
-                  <td className="px-5 py-4 text-slate-600">{item.reference || "-"}</td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        item.statut === "confirmed"
-                          ? "bg-secondary/10 text-secondary"
-                          : item.statut === "pending"
-                            ? "bg-primary/30 text-dark"
-                            : "bg-red-50 text-red-500"
-                      }`}
-                    >
-                      {item.statut}
-                    </span>
+              {data.transactions.length ? (
+                data.transactions.map((item) => (
+                  <tr key={item.id}>
+                    <td className="px-5 py-4 text-slate-600">{new Date(item.createdAt).toLocaleString("fr-FR")}</td>
+                    <td className="px-5 py-4 font-medium text-dark">{item.montant.toLocaleString("fr-FR")} FCFA</td>
+                    <td className="px-5 py-4 text-slate-600">{operatorLabels[item.operateur]}</td>
+                    <td className="px-5 py-4 text-slate-600">{item.reference || "-"}</td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          item.statut === "confirmed"
+                            ? "bg-secondary/10 text-secondary"
+                            : item.statut === "pending"
+                              ? "bg-primary/30 text-dark"
+                              : "bg-red-50 text-red-500"
+                        }`}
+                      >
+                        {item.statut}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-500">
+                    Aucune transaction n'est encore enregistree sur votre compte.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

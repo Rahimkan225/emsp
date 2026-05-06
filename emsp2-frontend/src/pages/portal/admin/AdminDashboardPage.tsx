@@ -1,12 +1,15 @@
-import { BarChart3, Clock3, FileText, GraduationCap, Image, LayoutDashboard, Receipt, TrendingUp, Users } from "lucide-react";
+import { Clock3, GraduationCap, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import AdminPageHeader from "../../../components/dashboard/AdminPageHeader";
 import SurfaceCard from "../../../components/dashboard/SurfaceCard";
+import { getVisibleAdminPortalItems } from "../../../config/adminPortal";
+import { useAuth } from "../../../hooks/useAuth";
 import { AreaComparisonChart, DonutBreakdown, HorizontalBars, MiniLineChart } from "../../../components/dashboard/SvgCharts";
 import { useAdminDashboard, useFinanceSummary } from "../../../hooks/useAdminDashboard";
 
 const AdminDashboardPage = () => {
+  const { user } = useAuth();
   const { data, isLoading } = useAdminDashboard();
   const { data: finance } = useFinanceSummary();
 
@@ -45,15 +48,7 @@ const AdminDashboardPage = () => {
     },
   ];
 
-  const quickLinks = [
-    { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard, description: "Vue globale et indicateurs" },
-    { label: "Etudiants", to: "/admin/etudiants", icon: Users, description: "Effectifs, dossiers et promotions" },
-    { label: "Scolarite", to: "/admin/scolarite", icon: GraduationCap, description: "Notes, emplois du temps et resultats" },
-    { label: "Comptabilite", to: "/admin/comptabilite", icon: Receipt, description: "Paiements, recus et relances" },
-    { label: "Statistiques", to: "/admin/statistiques", icon: BarChart3, description: "Analyses par pays et filiere" },
-    { label: "Mediatheque", to: "/admin/mediatheque", icon: Image, description: "Visuels, documents et videos" },
-    { label: "Actualites", to: "/admin/actualites", icon: FileText, description: "Publication et suivi editorial" },
-  ];
+  const quickLinks = getVisibleAdminPortalItems(user?.role);
 
   return (
     <div className="space-y-6">

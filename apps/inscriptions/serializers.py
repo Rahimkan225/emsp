@@ -174,3 +174,112 @@ class CandidatureSubmissionSerializer(serializers.ModelSerializer):
         if not request:
             return ""
         return request.build_absolute_uri(f"/api/inscriptions/{obj.dossier_number}/acknowledgement/")
+
+
+def _build_absolute_file_url(request, file_field):
+    if not file_field:
+        return ""
+    try:
+        url = file_field.url
+    except ValueError:
+        return ""
+    if not request:
+        return url
+    return request.build_absolute_uri(url)
+
+
+class AdminCandidatureDocumentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CandidatureDocument
+        fields = ["id", "original_name", "created_at", "url"]
+
+    def get_url(self, obj):
+        return _build_absolute_file_url(self.context.get("request"), obj.file)
+
+
+class CandidatureAdminListSerializer(serializers.ModelSerializer):
+    formation_name = serializers.CharField(source="formation.nom", read_only=True)
+    formation_code = serializers.CharField(source="formation.code", read_only=True)
+    nationality_label = serializers.CharField(source="get_nationality_display", read_only=True)
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+    acknowledgement_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Candidature
+        fields = [
+            "id",
+            "dossier_number",
+            "status",
+            "status_label",
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "nationality",
+            "nationality_label",
+            "formation_name",
+            "formation_code",
+            "created_at",
+            "updated_at",
+            "acknowledgement_url",
+        ]
+
+    def get_acknowledgement_url(self, obj):
+        request = self.context.get("request")
+        if not request:
+            return ""
+        return request.build_absolute_uri(f"/api/inscriptions/{obj.dossier_number}/acknowledgement/")
+
+
+class CandidatureAdminDetailSerializer(CandidatureAdminListSerializer):
+    highest_degree_label = serializers.CharField(source="get_highest_degree_display", read_only=True)
+    photo_url = serializers.SerializerMethodField()
+    transcript_url = serializers.SerializerMethodField()
+    diploma_url = serializers.SerializerMethodField()
+    motivation_file_url = serializers.SerializerMethodField()
+    additional_documents = AdminCandidatureDocumentSerializer(many=True, read_only=True)
+
+    class Meta(CandidatureAdminListSerializer.Meta):
+        fields = CandidatureAdminListSerializer.Meta.fields + [
+            "date_of_birth",
+            "place_of_birth",
+            "residence_country",
+            "address",
+            "whatsapp",
+            "photo_url",
+            "highest_degree",
+            "highest_degree_label",
+            "institution_name",
+            "graduation_year",
+            "diploma_country",
+            "transcript_url",
+            "diploma_url",
+            "motivation_file_url",
+            "professional_experience",
+            "motivation_text",
+            "accuracy_certified",
+            "terms_accepted",
+            "additional_documents",
+        ]
+
+    def get_photo_url(self, obj):
+        return _build_absolute_file_url(self.context.get("request"), obj.photo)
+
+    def get_transcript_url(self, obj):
+        return _build_absolute_file_url(self.context.get("request"), obj.transcript_file)
+
+    def get_diploma_url(self, obj):
+        return _build_absolute_file_url(self.context.get("request"), obj.diploma_file)
+
+    def get_motivation_file_url(self, obj):
+        return _build_absolute_file_url(self.context.get("request"), obj.motivation_file)
+
+
+class CandidatureAdminStatusSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(choices=Candidature.STATUS_CHOICES)
+
+    class Meta:
+        model = Candidature
+        fields = ["status"]

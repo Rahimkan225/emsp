@@ -402,7 +402,7 @@ const InscriptionPage = () => {
             Deposez votre candidature EMSP en quelques etapes
           </h1>
           <p className="mt-4 max-w-2xl text-white/85">
-            
+            Remplissez le formulaire ci-dessous pour soumettre votre candidature à l'EMSP. Assurez-vous de fournir des informations exactes et de joindre tous les documents requis pour maximiser vos chances d'admission.
           </p>
         </div>
       </section>

@@ -1,10 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { fetchAdminApplicationDetail, fetchAdminApplications, updateAdminApplicationStatus } from "../api/inscriptionsApi";
 import { fetchAdminNews } from "../api/newsApi";
-import { fetchAdminDashboard, fetchAdminAcademicOverview, fetchAdminStudents } from "../api/portalApi";
+import {
+  createAdminStudent,
+  fetchAdminDashboard,
+  fetchAdminAcademicOverview,
+  fetchAdminStudentOptions,
+  fetchAdminStudents,
+  updateAdminLegacyStudent,
+  updateAdminPortalStudent,
+} from "../api/portalApi";
 import { createAdminMedia, fetchAdminMedia } from "../api/mediaApi";
 import { fetchAdminPayments, fetchFinanceSummary } from "../api/financeApi";
-import type { AdminMediaPayload } from "../types";
+import type { AdminLegacyStudentPayload, AdminMediaPayload, AdminPortalStudentPayload } from "../types";
 
 export const useAdminDashboard = () =>
   useQuery({
@@ -32,12 +41,88 @@ export const useAdminStudents = (filters: {
     staleTime: 60 * 1000,
   });
 
+export const useAdminStudentOptions = () =>
+  useQuery({
+    queryKey: ["admin", "student-options"],
+    queryFn: fetchAdminStudentOptions,
+    staleTime: 5 * 60 * 1000,
+  });
+
+export const useCreateAdminStudent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: AdminLegacyStudentPayload | AdminPortalStudentPayload) => createAdminStudent(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "students"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+    },
+  });
+};
+
+export const useUpdateAdminLegacyStudent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ matricule, payload }: { matricule: string; payload: AdminLegacyStudentPayload }) =>
+      updateAdminLegacyStudent(matricule, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "students"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+    },
+  });
+};
+
+export const useUpdateAdminPortalStudent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: AdminPortalStudentPayload }) => updateAdminPortalStudent(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "students"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+    },
+  });
+};
+
 export const useAdminAcademicOverview = () =>
   useQuery({
     queryKey: ["admin", "academic-overview"],
     queryFn: fetchAdminAcademicOverview,
     staleTime: 60 * 1000,
   });
+
+export const useAdminApplications = (filters: {
+  status?: "submitted" | "under_review" | "accepted" | "rejected";
+  search?: string;
+}) =>
+  useQuery({
+    queryKey: ["admin", "applications", filters],
+    queryFn: () => fetchAdminApplications(filters),
+    staleTime: 60 * 1000,
+  });
+
+export const useAdminApplicationDetail = (applicationId?: number) =>
+  useQuery({
+    queryKey: ["admin", "applications", applicationId],
+    queryFn: () => fetchAdminApplicationDetail(applicationId as number),
+    enabled: Boolean(applicationId),
+    staleTime: 60 * 1000,
+  });
+
+export const useUpdateAdminApplicationStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: "submitted" | "under_review" | "accepted" | "rejected" }) =>
+      updateAdminApplicationStatus(id, status),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "applications", variables.id] });
+    },
+  });
+};
 
 export const useAdminPayments = (filters: {
   search?: string;

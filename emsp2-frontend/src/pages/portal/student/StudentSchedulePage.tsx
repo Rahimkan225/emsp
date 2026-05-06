@@ -1,5 +1,6 @@
 import SurfaceCard from "../../../components/dashboard/SurfaceCard";
-import { useStudentSchedule } from "../../../hooks/useStudentPortal";
+import { useEtudiantMe, useStudentSchedule } from "../../../hooks/useStudentPortal";
+import { buildGoogleCalendarUrl, downloadScheduleCalendar } from "../../../utils/studentPortal";
 
 const dayLabel = (iso: string) =>
   new Date(iso).toLocaleDateString("fr-FR", {
@@ -15,18 +16,28 @@ const timeLabel = (iso: string) =>
   });
 
 const StudentSchedulePage = () => {
+  const { data: profile } = useEtudiantMe();
   const { data = [], isLoading } = useStudentSchedule();
-
-  if (isLoading) {
-    return <div className="h-96 animate-pulse rounded-3xl bg-white" />;
-  }
-
-  const grouped = data.reduce<Record<string, typeof data>>((accumulator, item) => {
+  const sortedItems = [...data].sort((left, right) => new Date(left.debut).getTime() - new Date(right.debut).getTime());
+  const grouped = sortedItems.reduce<Record<string, typeof sortedItems>>((accumulator, item) => {
     const key = dayLabel(item.debut);
     accumulator[key] = accumulator[key] || [];
     accumulator[key].push(item);
     return accumulator;
   }, {});
+  const nextUpcomingCourse = sortedItems.find((item) => new Date(item.fin).getTime() >= Date.now()) || sortedItems[0];
+
+  if (isLoading) {
+    return <div className="h-96 animate-pulse rounded-3xl bg-white" />;
+  }
+
+  if (!sortedItems.length) {
+    return (
+      <SurfaceCard className="p-8 text-center text-slate-500">
+        Aucun cours n'est programme pour votre promotion pour le moment.
+      </SurfaceCard>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -34,7 +45,7 @@ const StudentSchedulePage = () => {
         <p className="text-sm uppercase tracking-[0.24em] text-secondary">Emploi du temps</p>
         <h1 className="mt-2 font-display text-3xl font-bold text-dark">Vue semaine</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          En attendant l'integration FullCalendar, cette vue semaine donne deja une lecture claire des cours, TD, examens et jours feries.
+          Votre planning est charge depuis l'API scolarite et peut etre exporte en iCal ou envoye vers Google Calendar.
         </p>
       </SurfaceCard>
 
@@ -65,8 +76,18 @@ const StudentSchedulePage = () => {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button className="rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white">Exporter iCal</button>
-        <button className="rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Google Calendar</button>
+        <button
+          onClick={() => downloadScheduleCalendar(sortedItems, `emploi-du-temps-${profile?.matricule || "emsp"}.ics`)}
+          className="rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white"
+        >
+          Exporter iCal
+        </button>
+        <button
+          onClick={() => window.open(buildGoogleCalendarUrl(nextUpcomingCourse), "_blank", "noopener,noreferrer")}
+          className="rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700"
+        >
+          Google Calendar
+        </button>
       </div>
     </div>
   );

@@ -5,6 +5,17 @@ from . import views
 app_name = "core"
 
 urlpatterns = [
+    path("admin/assets/<path:path>", views.nouveau_dashboard_asset, {"portal": "admin"}, name="admin_dashboard_asset"),
+    path("admin/", views.nouveau_dashboard_app, {"portal": "admin"}, name="admin_dashboard"),
+    path("admin/<path:path>", views.nouveau_dashboard_app, {"portal": "admin"}, name="admin_dashboard_path"),
+    path(
+        "etudiant/assets/<path:path>",
+        views.nouveau_dashboard_asset,
+        {"portal": "etudiant"},
+        name="etudiant_dashboard_asset",
+    ),
+    path("etudiant/", views.nouveau_dashboard_app, {"portal": "etudiant"}, name="etudiant_dashboard"),
+    path("etudiant/<path:path>", views.nouveau_dashboard_app, {"portal": "etudiant"}, name="etudiant_dashboard_path"),
     path("", views.react_app, name="home"),
     path("contact/", views.react_app, name="contact"),
     path("newsletter/subscribe/", views.newsletter_subscribe, name="newsletter_subscribe"),
@@ -13,7 +24,7 @@ urlpatterns = [
     path("legacy/contact/", views.contact, name="legacy_contact"),
     path("assets/<path:path>", views.react_asset, name="react_asset"),
     re_path(
-        r"^(?!(?:django-admin|api|assets|media|static)(?:/|$)|(?:a-propos|newsletter)(?:/|$)|mediatheque/hero-image(?:/|$)).*$",
+        r"^(?!(?:django-admin|api|assets|media|static|admin|etudiant)(?:/|$)|(?:a-propos|newsletter)(?:/|$)|mediatheque/hero-image(?:/|$)).*$",
         views.react_app,
         name="react_app",
     ),

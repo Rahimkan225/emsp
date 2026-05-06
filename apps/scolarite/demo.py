@@ -68,8 +68,18 @@ def _ensure_user(email, defaults):
             **defaults,
         },
     )
+    changed_fields = []
+    if user.username != email:
+        user.username = email
+        changed_fields.append("username")
+    for field, value in defaults.items():
+        if getattr(user, field) != value:
+            setattr(user, field, value)
+            changed_fields.append(field)
     if not user.check_password("emsp12345"):
         user.set_password("emsp12345")
+        changed_fields.append("password")
+    if changed_fields:
         user.save()
     return user
 
@@ -103,10 +113,10 @@ def ensure_admin_bootstrap_data_on_startup():
 
 
 def ensure_portal_demo_data(bootstrap_users=None):
-    if legacy_student_table_exists():
-        return
-
-    if User.objects.exists() and Etudiant.objects.exists():
+    # Le portail etudiant repose sur les tables scolarite_*.
+    # La presence d'une table legacy `etudiant` ne doit pas bloquer
+    # la creation des comptes/jeux de donnees utilises par les APIs du portail.
+    if Etudiant.objects.exists():
         return
 
     if bootstrap_users is None:
@@ -176,8 +186,23 @@ def ensure_portal_demo_data(bootstrap_users=None):
                 "role": "etudiant",
             },
         )
+        changed_fields = []
+        if user.username != email:
+            user.username = email
+            changed_fields.append("username")
+        if user.first_name != first_name:
+            user.first_name = first_name
+            changed_fields.append("first_name")
+        if user.last_name != last_name:
+            user.last_name = last_name
+            changed_fields.append("last_name")
+        if user.role != "etudiant":
+            user.role = "etudiant"
+            changed_fields.append("role")
         if not user.check_password("emsp12345"):
             user.set_password("emsp12345")
+            changed_fields.append("password")
+        if changed_fields:
             user.save()
 
         student, _ = Etudiant.objects.get_or_create(
