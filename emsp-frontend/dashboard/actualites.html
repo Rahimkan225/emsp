@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="blue-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMSP - Actualites</title>
+  <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png">
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/bootstrap-extended.css" rel="stylesheet">
+  <link href="sass/main.css" rel="stylesheet">
+  <link href="sass/blue-theme.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+  <header class="top-header">
+    <nav class="navbar navbar-expand">
+      <div class="btn-toggle"><a href="javascript:;"><i class="material-icons-outlined">menu</i></a></div>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="javascript:;" onclick="logout()">Deconnexion</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header"><h5 class="mb-0">EMSP</h5></div>
+    <div class="sidebar-nav">
+      <ul class="metismenu" id="sidenav">
+        <li><a href="index.html">Tableau de bord</a></li>
+        <li data-permission="actualites" class="mm-active"><a href="actualites.html">Actualites</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <div class="main-content">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+          <p class="text-uppercase text-primary mb-1">Contenu</p>
+          <h5 class="mb-0">Gestion des actualites</h5>
+        </div>
+        <button class="btn btn-grd-primary" data-bs-toggle="modal" data-bs-target="#newsModal" id="addNewsBtn">
+          Ajouter une actualite
+        </button>
+      </div>
+      <div id="alert-container"></div>
+      <div class="card rounded-4">
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-lg-8">
+              <input class="form-control" id="newsSearch" placeholder="Rechercher titre, extrait, contenu...">
+            </div>
+            <div class="col-lg-4">
+              <select class="form-select" id="newsStatus">
+                <option value="">Tous les statuts</option>
+                <option value="published">Publies</option>
+                <option value="draft">Brouillons</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Media</th>
+                  <th>Titre</th>
+                  <th>Tags</th>
+                  <th>Statut</th>
+                  <th>Mise a jour</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="newsBody">
+                <tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="newsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newsModalTitle">Nouvelle actualite</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="modal-alert-container"></div>
+          <input type="hidden" id="newsId">
+          <input type="hidden" id="newsCurrentCoverId">
+          <div class="row g-3">
+            <div class="col-lg-8">
+              <label class="form-label">Titre</label>
+              <input class="form-control" id="newsTitre" required>
+            </div>
+            <div class="col-lg-4">
+              <label class="form-label">Slug</label>
+              <input class="form-control" id="newsSlug" placeholder="Auto si vide">
+            </div>
+            <div class="col-lg-8">
+              <label class="form-label">Extrait</label>
+              <textarea class="form-control" id="newsExcerpt" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="col-lg-4">
+              <label class="form-label">Tags (separes par virgule)</label>
+              <input class="form-control" id="newsTags" placeholder="Formation, Vie scolaire">
+              <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" id="newsPublished">
+                <label class="form-check-label" for="newsPublished">Publier sur le site</label>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Photo ou video</label>
+              <input class="form-control" type="file" id="newsCoverFile" accept="image/*,video/*">
+              <small class="text-muted">Si aucun fichier n'est choisi en modification, le media actuel est conserve.</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Texte de l'actualite</label>
+              <textarea class="form-control" id="newsContent" rows="9"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-grd-primary" id="saveNewsBtn">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/plugins/metismenu/metisMenu.min.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="js/dashboard-api.js"></script>
+  <script>
+    if (!requireAuth()) {}
+    if (!checkPermission('actualites')) {}
+    filterSidebarMenu();
+
+    let articles = [];
+    const modalEl = document.getElementById('newsModal');
+    const newsModal = new bootstrap.Modal(modalEl);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadNews();
+      document.getElementById('newsSearch').addEventListener('input', debounce(loadNews, 300));
+      document.getElementById('newsStatus').addEventListener('change', loadNews);
+    });
+
+    document.getElementById('addNewsBtn').addEventListener('click', () => {
+      resetNewsForm();
+      document.getElementById('newsModalTitle').textContent = 'Nouvelle actualite';
+    });
+
+    function debounce(fn, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), wait);
+      };
+    }
+
+    function getArticleTags(article) {
+      return (article.tags || []).map((tag) => typeof tag === 'string' ? tag : tag.nom || '').filter(Boolean);
+    }
+
+    function renderCover(article) {
+      const cover = article.cover;
+      if (!cover || !cover.url) {
+        return '<div class="rounded-4 bg-light d-flex align-items-center justify-content-center" style="width:72px;height:54px"><i class="material-icons-outlined text-muted">article</i></div>';
+      }
+      if (cover.type === 'video') {
+        return `<video src="${escapeHtml(cover.url)}" class="rounded-4 object-fit-cover" width="72" height="54" muted></video>`;
+      }
+      return `<img src="${escapeHtml(cover.url)}" class="rounded-4 object-fit-cover" width="72" height="54" alt="">`;
+    }
+
+    async function loadNews() {
+      const body = document.getElementById('newsBody');
+      const params = new URLSearchParams();
+      const search = document.getElementById('newsSearch').value.trim();
+      const status = document.getElementById('newsStatus').value;
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+
+      body.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr>';
+      try {
+        articles = await apiCall(`actualites/admin/?${params.toString()}`);
+        body.innerHTML = articles.length ? articles.map((article) => `
+          <tr>
+            <td>${renderCover(article)}</td>
+            <td>
+              <div class="fw-semibold">${escapeHtml(article.titre)}</div>
+              <small class="text-muted">${escapeHtml(article.slug)}</small>
+            </td>
+            <td>${getArticleTags(article).map((tag) => `<span class="badge bg-light text-dark me-1">${escapeHtml(tag)}</span>`).join('') || '-'}</td>
+            <td>${getStatusBadge(article.is_published ? 'publie' : 'brouillon', article.status)}</td>
+            <td>${formatDateTime(article.updated_at)}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="editNews(${article.id})">Modifier</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="removeNews(${article.id})">Supprimer</button>
+            </td>
+          </tr>
+        `).join('') : '<tr><td colspan="6" class="text-center text-muted">Aucune actualite</td></tr>';
+      } catch (error) {
+        body.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Erreur de chargement</td></tr>';
+        showAlert(parseApiError(error, 'Erreur chargement actualites'));
+      }
+    }
+
+    function resetNewsForm() {
+      document.getElementById('newsId').value = '';
+      document.getElementById('newsCurrentCoverId').value = '';
+      document.getElementById('newsTitre').value = '';
+      document.getElementById('newsSlug').value = '';
+      document.getElementById('newsExcerpt').value = '';
+      document.getElementById('newsTags').value = '';
+      document.getElementById('newsPublished').checked = true;
+      document.getElementById('newsCoverFile').value = '';
+      document.getElementById('newsContent').value = '';
+      document.getElementById('modal-alert-container').innerHTML = '';
+    }
+
+    function editNews(id) {
+      const article = articles.find((item) => item.id === id);
+      if (!article) return;
+      document.getElementById('newsModalTitle').textContent = 'Modifier actualite';
+      document.getElementById('newsId').value = article.id;
+      document.getElementById('newsCurrentCoverId').value = article.cover?.id || '';
+      document.getElementById('newsTitre').value = article.titre || '';
+      document.getElementById('newsSlug').value = article.slug || '';
+      document.getElementById('newsExcerpt').value = article.extrait || '';
+      document.getElementById('newsTags').value = getArticleTags(article).join(', ');
+      document.getElementById('newsPublished').checked = !!article.is_published;
+      document.getElementById('newsCoverFile').value = '';
+      document.getElementById('newsContent').value = article.contenu || '';
+      document.getElementById('modal-alert-container').innerHTML = '';
+      newsModal.show();
+    }
+
+    async function createCoverMedia(file, title, excerpt) {
+      const formData = new FormData();
+      const isVideo = file.type.startsWith('video/');
+      formData.append('title', `${title} - couverture`);
+      formData.append('description', excerpt || '');
+      formData.append('alt_text', title);
+      formData.append('type', isVideo ? 'video' : 'image');
+      formData.append('category', 'actualites');
+      formData.append('is_active', 'true');
+      formData.append('video_type', isVideo ? 'upload' : '');
+      formData.append('file', file);
+      return apiCall('media/admin/', { method: 'POST', body: formData, headers: {} });
+    }
+
+    document.getElementById('saveNewsBtn').addEventListener('click', async () => {
+      const id = document.getElementById('newsId').value;
+      const title = document.getElementById('newsTitre').value.trim();
+      const excerpt = document.getElementById('newsExcerpt').value.trim();
+      const content = document.getElementById('newsContent').value.trim();
+      const file = document.getElementById('newsCoverFile').files?.[0];
+
+      if (!title || !excerpt || !content) {
+        showAlert('Titre, extrait et texte sont obligatoires.', 'danger', document.getElementById('modal-alert-container'));
+        return;
+      }
+
+      try {
+        let coverId = document.getElementById('newsCurrentCoverId').value || null;
+        if (file) {
+          const media = await createCoverMedia(file, title, excerpt);
+          coverId = media.id;
+        }
+
+        const payload = {
+          titre: title,
+          slug: document.getElementById('newsSlug').value.trim() || undefined,
+          extrait: excerpt,
+          contenu: content,
+          tags: document.getElementById('newsTags').value.split(',').map((tag) => tag.trim()).filter(Boolean),
+          is_published: document.getElementById('newsPublished').checked,
+          cover_id: coverId ? Number(coverId) : null,
+        };
+
+        if (id) {
+          await apiCall(`actualites/admin/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+        } else {
+          await apiCall('actualites/admin/', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        newsModal.hide();
+        showAlert('Actualite enregistree.', 'success');
+        loadNews();
+      } catch (error) {
+        showAlert(parseApiError(error, 'Erreur enregistrement'), 'danger', document.getElementById('modal-alert-container'));
+      }
+    });
+
+    async function removeNews(id) {
+      if (!confirm('Supprimer cette actualite ?')) return;
+      try {
+        await apiCall(`actualites/admin/${id}/`, { method: 'DELETE' });
+        showAlert('Actualite supprimee.', 'success');
+        loadNews();
+      } catch (error) {
+        showAlert(parseApiError(error, 'Erreur suppression'));
+      }
+    }
+  </script>
+</body>
+</html>

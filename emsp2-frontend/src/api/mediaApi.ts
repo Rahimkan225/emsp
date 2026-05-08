@@ -63,6 +63,30 @@ export async function fetchAdminMedia(params?: { category?: string; type?: "imag
 }
 
 export async function createAdminMedia(payload: AdminMediaPayload) {
+  const response = await axiosInstance.post<RawAdminMediaItem>("/media/admin/", buildAdminMediaFormData(payload), {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return mapAdminMediaItem(response.data);
+}
+
+export async function updateAdminMedia(id: number, payload: AdminMediaPayload) {
+  const response = await axiosInstance.patch<RawAdminMediaItem>(`/media/admin/${id}/`, buildAdminMediaFormData(payload), {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return mapAdminMediaItem(response.data);
+}
+
+export async function deleteAdminMedia(id: number) {
+  await axiosInstance.delete(`/media/admin/${id}/`);
+}
+
+function buildAdminMediaFormData(payload: AdminMediaPayload) {
   const formData = new FormData();
 
   formData.append("title", payload.title);
@@ -88,11 +112,5 @@ export async function createAdminMedia(payload: AdminMediaPayload) {
     formData.append("file", payload.file);
   }
 
-  const response = await axiosInstance.post<RawAdminMediaItem>("/media/admin/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-
-  return mapAdminMediaItem(response.data);
+  return formData;
 }

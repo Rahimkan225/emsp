@@ -1,12 +1,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 from django.views.generic.base import RedirectView
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
     path("etudiant/login/", RedirectView.as_view(url="/login", permanent=False)),
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     path("formations/", include("apps.formations.urls")),
     path("actualites/", include("apps.actualites.urls")),
     path("mediatheque/", include("apps.mediatheque.urls")),
@@ -24,6 +26,7 @@ urlpatterns = [
                 path("scolarite/", include("apps.scolarite.api_urls")),
                 path("comptabilite/", include("apps.comptabilite.api_urls")),
                 path("auth/", include("apps.accounts.api_urls")),
+                path("accounts/", include("apps.accounts.api_urls")),
             ]
         ),
     ),

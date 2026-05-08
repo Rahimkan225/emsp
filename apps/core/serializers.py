@@ -13,6 +13,13 @@ def _static_asset_url(request, asset_path):
 
 class SiteConfigSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
+    nom_etablissement = serializers.CharField(source="site_name", read_only=True)
+    email = serializers.EmailField(source="email_contact", read_only=True)
+    telephone = serializers.CharField(source="phone_1", read_only=True)
+    adresse = serializers.CharField(source="address", read_only=True)
+    facebook = serializers.URLField(source="facebook_url", read_only=True)
+    linkedin = serializers.URLField(source="linkedin_url", read_only=True)
+    twitter = serializers.URLField(source="twitter_url", read_only=True)
 
     class Meta:
         model = SiteConfig
@@ -34,6 +41,13 @@ class SiteConfigSerializer(serializers.ModelSerializer):
             "linkedin_url",
             "youtube_url",
             "footer_text",
+            "nom_etablissement",
+            "email",
+            "telephone",
+            "adresse",
+            "facebook",
+            "linkedin",
+            "twitter",
         ]
 
     def get_logo_url(self, obj):
@@ -56,6 +70,19 @@ class SiteConfigAdminSerializer(SiteConfigSerializer):
         ]
 
     def update(self, instance, validated_data):
+        aliases = {
+            "nom_etablissement": "site_name",
+            "email": "email_contact",
+            "telephone": "phone_1",
+            "adresse": "address",
+            "facebook": "facebook_url",
+            "linkedin": "linkedin_url",
+            "twitter": "twitter_url",
+        }
+        initial = getattr(self, "initial_data", {}) or {}
+        for source, target in aliases.items():
+            if source in initial:
+                validated_data[target] = initial.get(source, "")
         clear_logo = validated_data.pop("clear_logo", False)
         if clear_logo and instance.logo:
             instance.logo.delete(save=False)

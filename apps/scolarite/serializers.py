@@ -7,7 +7,22 @@ from apps.actualites.models import Article
 from apps.actualites.serializers import ArticleListSerializer
 from apps.mediatheque.serializers import MediaItemSerializer
 
-from .models import EmploiDuTempsItem, Etudiant, ForumPost, Note, Promotion, StudentDocument
+from .models import (
+    EmploiDuTempsItem,
+    Enseignant,
+    Etudiant,
+    ForumPost,
+    Note,
+    Promotion,
+    StudentDocument,
+    TransportCar,
+    TransportCommune,
+    TransportDepot,
+    TransportDriver,
+    TransportPayment,
+    TransportRoute,
+    TransportTrip,
+)
 
 
 class PromotionSerializer(serializers.ModelSerializer):
@@ -126,6 +141,142 @@ class ForumPostSerializer(serializers.ModelSerializer):
             "author_name",
             "replies_count",
             "created_at",
+        ]
+
+
+class EnseignantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enseignant
+        fields = [
+            "id",
+            "full_name",
+            "specialite",
+            "email",
+            "phone",
+            "statut",
+            "disponibilite",
+            "is_active",
+            "created_at",
+        ]
+
+
+class TransportDepotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransportDepot
+        fields = ["id", "label", "commune", "address", "manager_phone", "is_active"]
+
+
+class TransportCommuneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransportCommune
+        fields = ["id", "label", "pickup_point", "monthly_fee", "is_active"]
+
+
+class TransportRouteSerializer(serializers.ModelSerializer):
+    origin_label = serializers.CharField(source="origin.label", read_only=True)
+
+    class Meta:
+        model = TransportRoute
+        fields = [
+            "id",
+            "label",
+            "origin",
+            "origin_label",
+            "destination",
+            "pickup_time",
+            "distance_km",
+            "is_active",
+        ]
+
+
+class TransportCarSerializer(serializers.ModelSerializer):
+    depot_label = serializers.CharField(source="depot.label", read_only=True, default="")
+    route_label = serializers.CharField(source="route.label", read_only=True, default="")
+
+    class Meta:
+        model = TransportCar
+        fields = [
+            "id",
+            "label",
+            "plate_number",
+            "places",
+            "depot",
+            "depot_label",
+            "route",
+            "route_label",
+            "description",
+            "is_active",
+            "created_at",
+        ]
+
+
+class TransportDriverSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="user.full_name", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    car_label = serializers.CharField(source="car.label", read_only=True, default="")
+
+    class Meta:
+        model = TransportDriver
+        fields = [
+            "id",
+            "user",
+            "full_name",
+            "email",
+            "car",
+            "car_label",
+            "phone",
+            "license_number",
+            "is_active",
+            "created_at",
+        ]
+
+
+class TransportTripSerializer(serializers.ModelSerializer):
+    driver_name = serializers.CharField(source="driver.user.full_name", read_only=True)
+    car_label = serializers.CharField(source="car.label", read_only=True)
+    route_label = serializers.CharField(source="route.label", read_only=True, default="")
+
+    class Meta:
+        model = TransportTrip
+        fields = [
+            "id",
+            "driver",
+            "driver_name",
+            "car",
+            "car_label",
+            "route",
+            "route_label",
+            "service_date",
+            "departure_time",
+            "arrival_time",
+            "notes",
+            "created_at",
+        ]
+
+
+class TransportPaymentSerializer(serializers.ModelSerializer):
+    car = TransportCarSerializer(read_only=True)
+    commune_label = serializers.CharField(source="commune.label", read_only=True, default="")
+    student_name = serializers.CharField(source="etudiant.user.full_name", read_only=True)
+    matricule = serializers.CharField(source="etudiant.matricule", read_only=True)
+
+    class Meta:
+        model = TransportPayment
+        fields = [
+            "id",
+            "student_name",
+            "matricule",
+            "car",
+            "commune",
+            "commune_label",
+            "tarif",
+            "month",
+            "year",
+            "operateur",
+            "phone_number",
+            "paid_at",
+            "expires_at",
+            "reference",
         ]
 
 

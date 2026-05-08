@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="blue-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMSP - Mediatheque</title>
+  <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png">
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/bootstrap-extended.css" rel="stylesheet">
+  <link href="sass/main.css" rel="stylesheet">
+  <link href="sass/blue-theme.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+  <header class="top-header">
+    <nav class="navbar navbar-expand">
+      <div class="btn-toggle"><a href="javascript:;"><i class="material-icons-outlined">menu</i></a></div>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="javascript:;" onclick="logout()">Deconnexion</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header"><h5 class="mb-0">EMSP</h5></div>
+    <div class="sidebar-nav">
+      <ul class="metismenu" id="sidenav">
+        <li><a href="index.html">Tableau de bord</a></li>
+        <li data-permission="mediatheque" class="mm-active"><a href="mediatheque.html">Mediatheque</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <div class="main-content">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+          <p class="text-uppercase text-primary mb-1">Contenu</p>
+          <h5 class="mb-0">Mediatheque</h5>
+        </div>
+        <button class="btn btn-grd-primary" data-bs-toggle="modal" data-bs-target="#mediaModal" id="addMediaBtn">
+          Ajouter un media
+        </button>
+      </div>
+      <div id="alert-container"></div>
+      <div class="card rounded-4">
+        <div class="card-body">
+          <div class="row g-3 mb-4">
+            <div class="col-lg-6"><input class="form-control" id="mediaSearch" placeholder="Rechercher un titre"></div>
+            <div class="col-lg-3">
+              <select class="form-select" id="mediaTypeFilter">
+                <option value="">Tous les types</option>
+                <option value="image">Images</option>
+                <option value="video">Videos</option>
+                <option value="document">Documents</option>
+              </select>
+            </div>
+            <div class="col-lg-3"><input class="form-control" id="mediaCategoryFilter" placeholder="Categorie"></div>
+          </div>
+          <div id="mediaGrid" class="row g-3"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="mediaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="mediaModalTitle">Nouveau media</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="media-modal-alert-container"></div>
+          <input type="hidden" id="mediaId">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Titre</label>
+              <input class="form-control" id="mediaTitle">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Type</label>
+              <select class="form-select" id="mediaType">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="document">Document</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Categorie</label>
+              <input class="form-control" id="mediaCategory" placeholder="hero, actualites, partenaires...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Texte alternatif</label>
+              <input class="form-control" id="mediaAlt">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="mediaDescription" rows="3"></textarea>
+            </div>
+            <div class="col-md-5" id="mediaVideoTypeWrapper">
+              <label class="form-label">Source video</label>
+              <select class="form-select" id="mediaVideoType">
+                <option value="upload">Fichier video</option>
+                <option value="youtube">Lien YouTube</option>
+              </select>
+            </div>
+            <div class="col-md-7" id="mediaVideoUrlWrapper">
+              <label class="form-label">Lien YouTube</label>
+              <input class="form-control" id="mediaVideoUrl" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+            <div class="col-12" id="mediaFileWrapper">
+              <label class="form-label">Fichier</label>
+              <input class="form-control" type="file" id="mediaFile">
+              <small class="text-muted">En modification, laisse vide pour conserver le fichier actuel.</small>
+            </div>
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="mediaActive" checked>
+                <label class="form-check-label" for="mediaActive">Publier ce media</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-grd-primary" id="saveMediaBtn">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/plugins/metismenu/metisMenu.min.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="js/dashboard-api.js"></script>
+  <script>
+    if (!requireAuth()) {}
+    if (!checkPermission('mediatheque')) {}
+    filterSidebarMenu();
+
+    let mediaItems = [];
+    const mediaModalEl = document.getElementById('mediaModal');
+    const mediaModal = new bootstrap.Modal(mediaModalEl);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMedia();
+      document.getElementById('mediaSearch').addEventListener('input', debounce(loadMedia, 300));
+      document.getElementById('mediaTypeFilter').addEventListener('change', loadMedia);
+      document.getElementById('mediaCategoryFilter').addEventListener('input', debounce(loadMedia, 300));
+      document.getElementById('mediaType').addEventListener('change', updateMediaFormVisibility);
+      document.getElementById('mediaVideoType').addEventListener('change', updateMediaFormVisibility);
+    });
+
+    document.getElementById('addMediaBtn').addEventListener('click', () => {
+      resetMediaForm();
+      document.getElementById('mediaModalTitle').textContent = 'Nouveau media';
+      updateMediaFormVisibility();
+    });
+
+    function debounce(fn, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), wait);
+      };
+    }
+
+    function updateMediaFormVisibility() {
+      const type = document.getElementById('mediaType').value;
+      const videoType = document.getElementById('mediaVideoType').value;
+      document.getElementById('mediaVideoTypeWrapper').style.display = type === 'video' ? '' : 'none';
+      document.getElementById('mediaVideoUrlWrapper').style.display = type === 'video' && videoType === 'youtube' ? '' : 'none';
+      document.getElementById('mediaFileWrapper').style.display = type !== 'video' || videoType === 'upload' ? '' : 'none';
+      const file = document.getElementById('mediaFile');
+      file.accept = type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx';
+    }
+
+    function renderMediaPreview(item) {
+      if (item.type === 'image' && item.url) {
+        return `<img src="${escapeHtml(item.url)}" alt="" class="card-img-top object-fit-cover" style="height:180px">`;
+      }
+      if (item.type === 'video' && item.url && item.video_type !== 'youtube') {
+        return `<video src="${escapeHtml(item.url)}" class="card-img-top object-fit-cover" style="height:180px" controls></video>`;
+      }
+      const icon = item.type === 'video' ? 'play_circle' : 'description';
+      return `<div class="d-flex align-items-center justify-content-center bg-light" style="height:180px"><i class="material-icons-outlined fs-1">${icon}</i></div>`;
+    }
+
+    async function loadMedia() {
+      const grid = document.getElementById('mediaGrid');
+      const params = new URLSearchParams();
+      const search = document.getElementById('mediaSearch').value.trim();
+      const type = document.getElementById('mediaTypeFilter').value;
+      const category = document.getElementById('mediaCategoryFilter').value.trim();
+      if (search) params.set('search', search);
+      if (type) params.set('type', type);
+      if (category) params.set('category', category);
+
+      grid.innerHTML = '<div class="col-12 text-center text-muted">Chargement...</div>';
+      try {
+        mediaItems = await apiCall(`media/admin/?${params.toString()}`);
+        grid.innerHTML = mediaItems.length ? mediaItems.map((item) => `
+          <div class="col-sm-6 col-lg-4 col-xxl-3">
+            <div class="card h-100 rounded-4 overflow-hidden">
+              ${renderMediaPreview(item)}
+              <div class="card-body">
+                <div class="d-flex gap-2 mb-2">
+                  <span class="badge bg-light text-dark">${escapeHtml(item.type)}</span>
+                  <span class="badge ${item.is_active ? 'bg-success' : 'bg-danger'}">${item.is_active ? 'Actif' : 'Masque'}</span>
+                </div>
+                <h6 class="text-truncate">${escapeHtml(item.title)}</h6>
+                <p class="text-muted small mb-3">${escapeHtml(item.category || 'Sans categorie')}</p>
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-sm btn-outline-primary" onclick="editMedia(${item.id})">Modifier</button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="removeMedia(${item.id})">Supprimer</button>
+                  ${item.url ? `<a class="btn btn-sm btn-outline-secondary" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Ouvrir</a>` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('') : '<div class="col-12 text-center text-muted">Aucun media</div>';
+      } catch (error) {
+        grid.innerHTML = '<div class="col-12 text-center text-danger">Erreur de chargement</div>';
+        showAlert(parseApiError(error, 'Erreur mediatheque'));
+      }
+    }
+
+    function resetMediaForm() {
+      document.getElementById('mediaId').value = '';
+      document.getElementById('mediaTitle').value = '';
+      document.getElementById('mediaDescription').value = '';
+      document.getElementById('mediaAlt').value = '';
+      document.getElementById('mediaType').value = 'image';
+      document.getElementById('mediaCategory').value = '';
+      document.getElementById('mediaActive').checked = true;
+      document.getElementById('mediaVideoType').value = 'upload';
+      document.getElementById('mediaVideoUrl').value = '';
+      document.getElementById('mediaFile').value = '';
+      document.getElementById('media-modal-alert-container').innerHTML = '';
+    }
+
+    function editMedia(id) {
+      const item = mediaItems.find((media) => media.id === id);
+      if (!item) return;
+      document.getElementById('mediaModalTitle').textContent = 'Modifier media';
+      document.getElementById('mediaId').value = item.id;
+      document.getElementById('mediaTitle').value = item.title || '';
+      document.getElementById('mediaDescription').value = item.description || '';
+      document.getElementById('mediaAlt').value = item.alt_text || '';
+      document.getElementById('mediaType').value = item.type || 'image';
+      document.getElementById('mediaCategory').value = item.category || '';
+      document.getElementById('mediaActive').checked = !!item.is_active;
+      document.getElementById('mediaVideoType').value = item.video_type || 'upload';
+      document.getElementById('mediaVideoUrl').value = item.video_url || '';
+      document.getElementById('mediaFile').value = '';
+      document.getElementById('media-modal-alert-container').innerHTML = '';
+      updateMediaFormVisibility();
+      mediaModal.show();
+    }
+
+    document.getElementById('saveMediaBtn').addEventListener('click', async () => {
+      const id = document.getElementById('mediaId').value;
+      const title = document.getElementById('mediaTitle').value.trim();
+      const type = document.getElementById('mediaType').value;
+      const videoType = document.getElementById('mediaVideoType').value;
+      const file = document.getElementById('mediaFile').files?.[0];
+
+      if (!title) {
+        showAlert('Le titre est obligatoire.', 'danger', document.getElementById('media-modal-alert-container'));
+        return;
+      }
+      if (!id && type !== 'video' && !file) {
+        showAlert('Choisis un fichier.', 'danger', document.getElementById('media-modal-alert-container'));
+        return;
+      }
+      if (!id && type === 'video' && videoType === 'upload' && !file) {
+        showAlert('Choisis un fichier video.', 'danger', document.getElementById('media-modal-alert-container'));
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', document.getElementById('mediaDescription').value.trim());
+      formData.append('alt_text', document.getElementById('mediaAlt').value.trim());
+      formData.append('type', type);
+      formData.append('category', document.getElementById('mediaCategory').value.trim());
+      formData.append('is_active', String(document.getElementById('mediaActive').checked));
+      if (type === 'video') {
+        formData.append('video_type', videoType);
+        if (videoType === 'youtube') {
+          formData.append('video_url', document.getElementById('mediaVideoUrl').value.trim());
+        }
+      }
+      if (file && !(type === 'video' && videoType === 'youtube')) {
+        formData.append('file', file);
+      }
+
+      try {
+        await apiCall(id ? `media/admin/${id}/` : 'media/admin/', {
+          method: id ? 'PATCH' : 'POST',
+          body: formData,
+          headers: {},
+        });
+        mediaModal.hide();
+        showAlert('Media enregistre.', 'success');
+        loadMedia();
+      } catch (error) {
+        showAlert(parseApiError(error, 'Erreur enregistrement'), 'danger', document.getElementById('media-modal-alert-container'));
+      }
+    });
+
+    async function removeMedia(id) {
+      if (!confirm('Supprimer ce media ?')) return;
+      try {
+        await apiCall(`media/admin/${id}/`, { method: 'DELETE' });
+        showAlert('Media supprime.', 'success');
+        loadMedia();
+      } catch (error) {
+        showAlert(parseApiError(error, 'Erreur suppression'));
+      }
+    }
+  </script>
+</body>
+</html>

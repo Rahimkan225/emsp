@@ -1,0 +1,10 @@
+.env
+*.pyc
+__pycache__/
+.venv/
+.venv313/
+node_modules/
+emsp2-frontend/node_modules/
+staticfiles/
+*.log
+*.tsbuildinfo

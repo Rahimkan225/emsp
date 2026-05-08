@@ -12,6 +12,7 @@ class CustomUser(AbstractUser):
         COMPTA = "compta"
         ETUDIANT = "etudiant"
         ENSEIGNANT = "enseignant"
+        CHAUFFEUR = "chauffeur"
 
     ROLE_CHOICES = (
         (Roles.ADMIN, "Administrateur"),
@@ -20,6 +21,7 @@ class CustomUser(AbstractUser):
         (Roles.COMPTA, "Comptabilite"),
         (Roles.ETUDIANT, "Etudiant"),
         (Roles.ENSEIGNANT, "Enseignant"),
+        (Roles.CHAUFFEUR, "Chauffeur"),
     )
 
     email = models.EmailField(unique=True)

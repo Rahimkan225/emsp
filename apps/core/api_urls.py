@@ -21,6 +21,18 @@ class SiteConfigApiView(APIView):
         )
         return Response(serializer.data)
 
+    def put(self, request):
+        if not (request.user and request.user.is_authenticated and request.user.role in ["admin", "staff", "compta"]):
+            return Response({"detail": "Authentification admin requise."}, status=status.HTTP_403_FORBIDDEN)
+        serializer = SiteConfigAdminSerializer(
+            SiteConfig.get(),
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        return Response(SiteConfigAdminSerializer(serializer.save(), context={"request": request}).data)
+
 
 class AdminSiteConfigApiView(APIView):
     permission_classes = [IsFullAdminAccess]

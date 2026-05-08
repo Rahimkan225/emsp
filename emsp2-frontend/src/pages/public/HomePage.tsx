@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight, Globe2, GraduationCap, Laptop, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -26,8 +26,8 @@ const heroTitles = [
 const primaryHeroImage = {
   id: -1,
   title: heroTitles[0],
-  url: "/static/emsp/images/home-classroom-yellow.jpg",
-  altText: "Etudiants EMSP en salle de classe",
+  url: "/media/imageemsp/Photo%20de%20Al%C3%A8ve.jpg",
+  altText: "Etudiants EMSP alignes dans la cour",
   type: "image" as const,
   category: "hero",
   createdAt: "",
@@ -38,19 +38,19 @@ const fallbackHeroImages = [
   {
     id: -2,
     title: heroTitles[1],
-    url: "/static/emsp/images/home-tech-forum.jpg",
-    altText: "Delegation EMSP au Ivoire Tech Forum",
+    url: "/media/imageemsp/Photo%20de%20Al%C3%A8ve(12).jpg",
+    altText: "Etudiants EMSP accueillant une responsable academique",
     type: "image" as const,
-    category: "fallback",
+    category: "hero",
     createdAt: "",
   },
   {
     id: -3,
     title: heroTitles[2],
-    url: "/static/emsp/images/home-artci-itu.jpg",
-    altText: "Etudiants EMSP lors d'une certification ARTCI ITU",
+    url: "/media/imageemsp/Photo%20de%20Al%C3%A8ve(14).jpg",
+    altText: "Etudiants EMSP reunis dans la cour de l'ecole",
     type: "image" as const,
-    category: "fallback",
+    category: "hero",
     createdAt: "",
   },
 ];
@@ -164,48 +164,33 @@ const rootPartnerLogos = Object.entries(partnerLogoModules)
     createdAt: "",
   }));
 
-const chunkItems = <T,>(items: T[], size: number) => {
-  const chunks: T[][] = [];
-
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
-
-  return chunks;
-};
-
 const HomePage = () => {
   const { data: site } = useSiteConfig();
-  const { data: heroImages = [] } = useMedia("hero", "image");
   const { data: flagImages = [] } = useMedia("drapeaux", "image");
   const { data: partnerImages = [] } = useMedia("partenaires", "image");
   const { data: formations = [] } = useFormations({ limit: 8 });
   const { data: news = [] } = useNews({ limit: 3 });
 
   const [activeSlide, setActiveSlide] = useState(0);
-  const [activePartnerSlide, setActivePartnerSlide] = useState(0);
   const [hoveringHero, setHoveringHero] = useState(false);
-  const [hoveringPartners, setHoveringPartners] = useState(false);
   const [visibleStats, setVisibleStats] = useState<number[]>(stats.map(() => 0));
   const statsRef = useRef<HTMLElement | null>(null);
 
   const heroSlides = useMemo(
     () => {
-      const selectedHeroUrls = new Set(fallbackHeroImages.map((item) => item.url));
-      const secondarySlides = heroImages.filter((item) => !selectedHeroUrls.has(item.url));
-      const orderedSlides = [...fallbackHeroImages, ...secondarySlides].slice(0, 3);
+      const orderedSlides = fallbackHeroImages;
 
       return orderedSlides.map((item, index) => ({
         ...item,
         title: heroTitles[index] || heroTitles[0],
       }));
     },
-    [heroImages],
+    [],
   );
-  const partnerSlides = useMemo(() => {
+  const partnerLogos = useMemo(() => {
     const mergedPartners = [...rootPartnerLogos, ...partnerImages.filter((item) => item.url)];
     const seenUrls = new Set<string>();
-    const uniquePartners = mergedPartners.filter((item) => {
+    return mergedPartners.filter((item) => {
       if (seenUrls.has(item.url)) {
         return false;
       }
@@ -213,8 +198,6 @@ const HomePage = () => {
       seenUrls.add(item.url);
       return true;
     });
-
-    return chunkItems(uniquePartners, 6);
   }, [partnerImages]);
   const memberCountries = useMemo(() => {
     const activeFlags = flagImages.filter((item) => item.url).slice(0, 8);
@@ -243,26 +226,9 @@ const HomePage = () => {
     if (heroSlides.length <= 1 || hoveringHero) return;
     const id = window.setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
+    }, 2000);
     return () => window.clearInterval(id);
   }, [heroSlides.length, hoveringHero]);
-
-  useEffect(() => {
-    if (partnerSlides.length <= 1 || hoveringPartners) return;
-    const id = window.setInterval(() => {
-      setActivePartnerSlide((prev) => (prev + 1) % partnerSlides.length);
-    }, 5000);
-    return () => window.clearInterval(id);
-  }, [hoveringPartners, partnerSlides.length]);
-
-  useEffect(() => {
-    if (!partnerSlides.length) {
-      setActivePartnerSlide(0);
-      return;
-    }
-
-    setActivePartnerSlide((prev) => (prev >= partnerSlides.length ? 0 : prev));
-  }, [partnerSlides.length]);
 
   useEffect(() => {
     if (!statsRef.current) return;
@@ -457,30 +423,54 @@ const HomePage = () => {
             <h2 className="font-display text-3xl font-bold text-dark">Nos Programmes de Formation</h2>
             <p className="mt-2 text-slate-600">Des cursus adaptes aux enjeux postaux et numeriques africains</p>
           </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          <article className="rounded-2xl bg-secondary p-6 text-white">
-            <GraduationCap size={28} />
-            <h3 className="mt-4 text-xl font-semibold">FSP - Formations Superieures Postales</h3>
-            <p className="mt-2 text-sm text-white/90">ADM | INP | CTR</p>
-            <Link to="/formations/fsp" className="mt-5 inline-flex rounded-md bg-primary px-4 py-2 font-semibold text-dark">
+        <div className="mt-10 grid items-stretch gap-6 lg:grid-cols-3">
+          <article className="flex h-full overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-secondary/20 transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-35px_rgba(34,197,94,0.45)]">
+            <div className="flex w-full flex-col">
+              <img
+                src="/media/imageemsp/IMG-20250705-WA0133.jpg"
+                alt="Etudiants EMSP reunis dans une salle"
+                className="h-48 w-full object-cover"
+              />
+              <div className="flex flex-1 flex-col p-6">
+                <h3 className="text-xl font-semibold text-dark">FSP - Formations Superieures Postales</h3>
+                <p className="mt-2 text-sm text-slate-600">ADM | INP | CTR</p>
+                <Link to="/formations/fsp" className="mt-auto inline-flex w-fit rounded-md bg-primary px-4 py-2 font-semibold text-dark">
                 Decouvrir FSP
               </Link>
+              </div>
+            </div>
             </article>
-            <article className="rounded-2xl border border-secondary/30 bg-white p-6">
-              <Laptop size={28} className="text-secondary" />
-              <h3 className="mt-4 text-xl font-semibold text-dark">FS-MENUM</h3>
-              <p className="mt-2 text-sm text-slate-600">Licences et masters professionnels : LNUM, FDIG, MDIG, DSER, LECO, FMER, MDEB et TNOR</p>
-              <Link to="/formations/fs-menum" className="mt-5 inline-flex rounded-md bg-secondary px-4 py-2 font-semibold text-white">
+            <article className="flex h-full overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-secondary/20 transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-35px_rgba(34,197,94,0.45)]">
+              <div className="flex w-full flex-col">
+                <img
+                  src="/media/imageemsp/Photo%20de%20Al%C3%A8ve(11).jpg"
+                  alt="Conference academique EMSP en salle"
+                  className="h-48 w-full object-cover"
+                />
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="text-xl font-semibold text-dark">FS-MENUM</h3>
+                  <p className="mt-2 text-sm text-slate-600">Licences et masters professionnels : LNUM, FDIG, MDIG, DSER, LECO, FMER, MDEB et TNOR</p>
+                  <Link to="/formations/fs-menum" className="mt-auto inline-flex w-fit rounded-md bg-secondary px-4 py-2 font-semibold text-white">
                 Decouvrir FS-MENUM
               </Link>
+                </div>
+              </div>
             </article>
-            <article className="rounded-2xl border-t-4 border-primary bg-white p-6">
-              <ShieldCheck size={28} className="text-secondary" />
-              <h3 className="mt-4 text-xl font-semibold text-dark">Pole d'Excellence International</h3>
-              <p className="mt-2 text-sm text-slate-600">MS-RegNUM en co-diplomation avec Telecom Paris pour les cadres de la regulation numerique</p>
-              <Link to="/formations/fs-menum/ms-regnum" className="mt-5 inline-flex rounded-md bg-secondary px-4 py-2 font-semibold text-white">
+            <article className="flex h-full overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-primary/50 transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-35px_rgba(250,204,21,0.4)]">
+              <div className="flex w-full flex-col">
+                <img
+                  src="/media/imageemsp/IMG-20251206-WA0229(1).jpg"
+                  alt="Delegation EMSP au Ivoire Tech Forum"
+                  className="h-48 w-full object-cover"
+                />
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="text-xl font-semibold text-dark">Pole d'Excellence International</h3>
+                  <p className="mt-2 text-sm text-slate-600">MS-RegNUM en co-diplomation avec Telecom Paris pour les cadres de la regulation numerique</p>
+                  <Link to="/formations/fs-menum/ms-regnum" className="mt-auto inline-flex w-fit rounded-md bg-secondary px-4 py-2 font-semibold text-white">
                 Voir MS-RegNUM
               </Link>
+                </div>
+              </div>
             </article>
           </div>
           <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -644,7 +634,11 @@ const HomePage = () => {
             <motion.article key={item.id} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="h-48 w-full bg-slate-100">
                 {item.coverImage ? (
-                  <img src={item.coverImage.url} alt={item.coverImage.altText || item.title} className="h-full w-full object-cover" />
+                  item.coverImage.type === "video" ? (
+                    <video src={item.coverImage.url} className="h-full w-full object-cover" muted playsInline />
+                  ) : (
+                    <img src={item.coverImage.url} alt={item.coverImage.altText || item.title} className="h-full w-full object-cover" />
+                  )
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-400">Aucune couverture</div>
                 )}
@@ -708,77 +702,36 @@ const HomePage = () => {
 
           <div
             className="mt-12 rounded-[36px] border border-slate-200 bg-white px-4 py-8 shadow-[0_32px_90px_-55px_rgba(15,23,42,0.35)] sm:px-6 lg:px-8"
-            onMouseEnter={() => setHoveringPartners(true)}
-            onMouseLeave={() => setHoveringPartners(false)}
           >
-            {partnerSlides.length > 0 ? (
+            {partnerLogos.length > 0 ? (
               <>
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.24em] text-secondary">Reseau partenaire</p>
                     <p className="mt-2 text-sm text-slate-600">
-                      Les logos defilent automatiquement toutes les 5 secondes depuis le dossier racine `logopartenaire`.
+                      Un reseau institutionnel, academique et technique mobilise autour de l'excellence EMSP.
                     </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      aria-label="Slide partenaires precedent"
-                      className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-secondary hover:text-secondary"
-                      onClick={() => setActivePartnerSlide((prev) => (prev - 1 + partnerSlides.length) % partnerSlides.length)}
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <button
-                      aria-label="Slide partenaires suivant"
-                      className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-secondary hover:text-secondary"
-                      onClick={() => setActivePartnerSlide((prev) => (prev + 1) % partnerSlides.length)}
-                    >
-                      <ChevronRight size={18} />
-                    </button>
                   </div>
                 </div>
 
-                <div className="relative mt-8 min-h-[420px] overflow-hidden sm:min-h-[320px]">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`partners-${activePartnerSlide}`}
-                      initial={{ opacity: 0, x: 36 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -36 }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
-                      className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
-                    >
-                      {partnerSlides[activePartnerSlide].map((item, index) => (
-                        <motion.article
-                          key={item.id}
-                          initial={{ opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="group flex min-h-[126px] items-center justify-center rounded-[28px] border border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-6 py-5 shadow-sm transition hover:-translate-y-1 hover:border-secondary/20 hover:shadow-[0_24px_50px_-30px_rgba(34,197,94,0.35)]"
-                        >
+                <div className="relative mt-8 overflow-hidden">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white to-transparent" />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white to-transparent" />
+                  <div className="flex w-max animate-marquee gap-5 py-2">
+                    {[...partnerLogos, ...partnerLogos].map((item, index) => (
+                      <article
+                        key={`${item.id}-${index}`}
+                        className="group flex h-36 w-[300px] shrink-0 items-center justify-center rounded-[28px] border border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-6 py-5 shadow-sm transition hover:-translate-y-1 hover:border-secondary/20 hover:shadow-[0_24px_50px_-30px_rgba(34,197,94,0.35)] sm:w-[360px]"
+                      >
                           <img
                             src={item.url}
                             alt={item.altText || item.title}
                             className="max-h-20 w-auto object-contain transition duration-300 group-hover:scale-[1.03]"
                           />
-                        </motion.article>
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {partnerSlides.length > 1 ? (
-                  <div className="mt-8 flex items-center justify-center gap-2">
-                    {partnerSlides.map((_, index) => (
-                      <button
-                        key={`partner-dot-${index}`}
-                        aria-label={`Aller au groupe partenaire ${index + 1}`}
-                        className={`h-2.5 rounded-full transition ${index === activePartnerSlide ? "w-10 bg-secondary" : "w-2.5 bg-slate-300 hover:bg-slate-400"}`}
-                        onClick={() => setActivePartnerSlide(index)}
-                      />
+                      </article>
                     ))}
                   </div>
-                ) : null}
+                </div>
               </>
             ) : (
               <div className="py-10 text-center text-sm text-slate-500">Aucun partenaire disponible pour le moment.</div>

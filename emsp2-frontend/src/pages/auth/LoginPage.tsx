@@ -2,7 +2,7 @@ import { ArrowLeft, Loader2, Lock, Mail } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
-import { canAccessAdminPath, getAdminHomePath } from "../../config/adminPortal";
+import { canAccessAdminPath, staticAdminDashboardPath } from "../../config/adminPortal";
 import { useAuth } from "../../hooks/useAuth";
 import { useSiteConfig } from "../../hooks/useSiteConfig";
 
@@ -25,11 +25,15 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
+      if (user.role !== "etudiant") {
+        window.location.replace(staticAdminDashboardPath);
+        return;
+      }
       if (redirectTarget && canAccessAdminPath(user.role, redirectTarget)) {
         navigate(redirectTarget, { replace: true });
         return;
       }
-      navigate(user.role === "etudiant" ? "/etudiant/dashboard" : getAdminHomePath(user.role), { replace: true });
+      navigate("/etudiant/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate, redirectTarget, user]);
 
@@ -40,12 +44,14 @@ const LoginPage = () => {
 
     try {
       const loggedUser = await login({ email, password });
+      if (loggedUser.role !== "etudiant") {
+        window.location.href = staticAdminDashboardPath;
+        return;
+      }
       const nextPath =
         redirectTarget && canAccessAdminPath(loggedUser.role, redirectTarget)
           ? redirectTarget
-          : loggedUser.role === "etudiant"
-            ? "/etudiant/dashboard"
-            : getAdminHomePath(loggedUser.role);
+          : "/etudiant/dashboard";
       navigate(nextPath, { replace: true });
     } catch (err: unknown) {
       const detail =
@@ -59,32 +65,48 @@ const LoginPage = () => {
   };
 
   if (isAuthenticated && user) {
-    return <Navigate to={user.role === "etudiant" ? "/etudiant/dashboard" : getAdminHomePath(user.role)} replace />;
+    if (user.role !== "etudiant") {
+      return null;
+    }
+    return <Navigate to="/etudiant/dashboard" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_52%,#fef9c3_100%)]">
       <div className="grid min-h-screen lg:grid-cols-12">
         {/* Maxton auth-cover — illustration */}
-        <div className="relative hidden items-center justify-center border-r border-slate-200 bg-gradient-to-br from-maxton-navy2 via-indigo-950 to-maxton-navy lg:col-span-7 lg:flex">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(34,197,94,0.2),transparent_50%)]" />
-          <div className="relative px-10 py-12 text-center text-white">
+        <div className="relative hidden overflow-hidden bg-secondary lg:col-span-7 lg:block">
+          <img
+            src="/media/imageemsp/Photo%20de%20Al%C3%A8ve(11).jpg"
+            alt="Conference academique EMSP"
+            className="h-full w-full object-cover"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-emerald-950/88 via-emerald-900/62 to-emerald-800/25" />
+          <div className="hidden" aria-hidden="true">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-300/90">Maxton · EMSP</p>
             <h1 className="mt-6 font-display text-4xl font-bold leading-tight md:text-5xl">
-              Tableau de bord direction & etudiants
+              Accedez a votre portail academique
             </h1>
-            <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-white/75">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85">
               Pilotage des effectifs, admissions et finances — meme ergonomie que le theme Maxton (nouveau_dashboard), adapte a l&apos;ecole des Metiers des Postes.
             </p>
-            <div className="mx-auto mt-12 max-w-xl">
-              <img src="/maxton/login1.png" width={520} height={420} className="mx-auto h-auto max-w-full drop-shadow-2xl" alt="" />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 top-0 flex items-end px-10 py-12 text-white xl:px-16">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">Espace EMSP</p>
+              <h1 className="mt-6 font-display text-4xl font-bold leading-tight md:text-5xl">
+                Accedez a votre portail academique
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85">
+                Retrouvez les services et tableaux de bord EMSP dans un espace clair, securise et aligne avec l'identite de l'ecole.
+              </p>
             </div>
           </div>
         </div>
 
         {/* Formulaire — bordure superieure type Maxton */}
-        <div className="relative flex flex-col justify-center bg-white lg:col-span-5">
-          <div className="absolute left-0 right-0 top-0 h-1.5 bg-gradient-to-r from-secondary via-primary to-indigo-600" />
+        <div className="relative flex flex-col justify-center bg-white/90 backdrop-blur lg:col-span-5">
+          <div className="absolute left-0 right-0 top-0 h-1.5 bg-gradient-to-r from-secondary via-primary to-secondary" />
           <div className="px-6 py-10 sm:px-10 lg:px-12">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -96,7 +118,7 @@ const LoginPage = () => {
                   </div>
                 )}
                 <h2 className="font-display text-2xl font-bold tracking-tight text-dark md:text-3xl">Connexion</h2>
-                <p className="mt-2 text-sm text-slate-600">Identifiants EMSP (personnel ou etudiant).</p>
+                <p className="mt-2 text-sm text-slate-600">Identifiants EMSP pour acceder a votre espace.</p>
               </div>
               <Link
                 to="/"
@@ -107,7 +129,7 @@ const LoginPage = () => {
               </Link>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-9 space-y-5">
+            <form onSubmit={handleSubmit} className="mt-9 space-y-5 rounded-2xl border border-emerald-100 bg-white p-5 shadow-[0_24px_70px_-48px_rgba(21,128,61,0.5)] sm:p-6">
               <div>
                 <label htmlFor="login-email" className="mb-1.5 block text-sm font-semibold text-dark">
                   E-mail
@@ -160,7 +182,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-grd-emsp w-full rounded-xl px-5 py-3.5 text-center text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full rounded-xl bg-secondary px-5 py-3.5 text-center text-sm font-semibold text-white shadow-lg shadow-secondary/25 transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? (
                   <span className="inline-flex items-center justify-center gap-2">
@@ -180,7 +202,7 @@ const LoginPage = () => {
 
               <p className="text-center text-sm text-slate-600">
                 Pas encore de compte applicatif ?{" "}
-                <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-800">
+                <Link to="/register" className="font-semibold text-secondary hover:text-emerald-700">
                   Creer un dossier candidat
                 </Link>
               </p>

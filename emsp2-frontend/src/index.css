@@ -6,12 +6,51 @@
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1E293B;
   background-color: #FFFFFF;
+  --emsp-bg: #f8faf5;
+  --emsp-surface: #ffffff;
+  --emsp-soft: #f4f7ec;
+  --emsp-border: #dbe8c7;
+  --emsp-heading: #12351f;
+  --emsp-muted: #60705f;
+  --emsp-sidebar-start: #fefce8;
+  --emsp-sidebar-mid: #fff7c2;
+  --emsp-sidebar-end: #e8f7d1;
+  --emsp-accent: #22c55e;
+  --emsp-accent-strong: #15803d;
+  --emsp-warning: #facc15;
+  --emsp-sidebar-text: #12351f;
+  --emsp-sidebar-muted: #4d6b3a;
+  --emsp-input: #fbfdf7;
+}
+
+.emsp-theme-dark {
+  color-scheme: dark;
+  --emsp-bg: #07120a;
+  --emsp-surface: #101c12;
+  --emsp-soft: #152415;
+  --emsp-border: #28422b;
+  --emsp-heading: #f7fee7;
+  --emsp-muted: #bdd0b7;
+  --emsp-sidebar-start: #10210f;
+  --emsp-sidebar-mid: #173118;
+  --emsp-sidebar-end: #0a160b;
+  --emsp-accent: #4ade80;
+  --emsp-accent-strong: #22c55e;
+  --emsp-warning: #fde047;
+  --emsp-sidebar-text: #f7fee7;
+  --emsp-sidebar-muted: #bbf7d0;
+  --emsp-input: #132015;
 }
 
 body {
   margin: 0;
   color: #1E293B;
   background: #FFFFFF;
+}
+
+:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
 }
 
 @keyframes marquee {
@@ -33,20 +72,37 @@ body {
 
 /* Theme Maxton (nouveau_dashboard) — portails uniquement */
 .maxton-portal-shell {
-  background-color: #f4f7fb;
-  background-image: radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.06) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(34, 197, 94, 0.07) 0px, transparent 45%);
+  background-color: var(--emsp-bg);
+  color: var(--emsp-heading);
+  background-image: radial-gradient(at 0% 0%, rgba(250, 204, 21, 0.18) 0px, transparent 45%),
+    radial-gradient(at 100% 0%, rgba(34, 197, 94, 0.16) 0px, transparent 42%);
   min-height: 100vh;
 }
 
 .maxton-sidebar {
-  background: linear-gradient(180deg, #0f1535 0%, #181f4a 55%, #0c1229 100%);
-  box-shadow: 12px 0 40px -28px rgba(0, 0, 0, 0.45);
+  color: var(--emsp-sidebar-text);
+  background: linear-gradient(180deg, var(--emsp-sidebar-start) 0%, var(--emsp-sidebar-mid) 48%, var(--emsp-sidebar-end) 100%);
+  border-right: 1px solid var(--emsp-border);
+  box-shadow: 12px 0 40px -30px rgba(21, 128, 61, 0.45);
 }
 
 .maxton-sidebar-student {
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-  box-shadow: 12px 0 36px -26px rgba(0, 0, 0, 0.38);
+  color: var(--emsp-sidebar-text);
+  background: linear-gradient(180deg, var(--emsp-sidebar-start) 0%, var(--emsp-sidebar-mid) 52%, var(--emsp-sidebar-end) 100%);
+  border-right: 1px solid var(--emsp-border);
+  box-shadow: 12px 0 36px -28px rgba(21, 128, 61, 0.4);
+}
+
+.emsp-topbar {
+  border-bottom: 1px solid var(--emsp-border);
+  background: color-mix(in srgb, var(--emsp-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.emsp-panel {
+  border: 1px solid var(--emsp-border);
+  background: var(--emsp-surface);
+  border-radius: 1rem;
 }
 
 .chart-container-maxton {
@@ -56,7 +112,7 @@ body {
 }
 
 .btn-grd-emsp {
-  background-image: linear-gradient(105deg, #22c55e 0%, #16a34a 52%, #15803d 100%);
+  background-image: linear-gradient(105deg, #22c55e 0%, #84cc16 52%, #facc15 100%);
   color: #fff;
   box-shadow: 0 10px 28px -12px rgba(34, 197, 94, 0.55);
 }
@@ -80,5 +136,93 @@ body {
 
 .maxton-border-accent-top {
   border-top-width: 4px;
-  border-image: linear-gradient(90deg, #22c55e, #facc15, #4f46e5) 1;
+  border-image: linear-gradient(90deg, #22c55e, #facc15, #15803d) 1;
+}
+
+.maxton-portal-shell .text-dark {
+  color: var(--emsp-heading) !important;
+}
+
+.maxton-portal-shell .text-slate-400,
+.maxton-portal-shell .text-slate-500,
+.maxton-portal-shell .text-slate-600 {
+  color: var(--emsp-muted) !important;
+}
+
+.maxton-portal-shell .bg-white,
+.maxton-portal-shell .bg-slate-50,
+.maxton-portal-shell .bg-slate-100 {
+  background-color: var(--emsp-surface) !important;
+}
+
+.maxton-portal-shell .bg-emerald-50,
+.maxton-portal-shell .bg-secondary\/10,
+.maxton-portal-shell .bg-primary\/40 {
+  background-color: var(--emsp-soft) !important;
+}
+
+.maxton-portal-shell input,
+.maxton-portal-shell textarea,
+.maxton-portal-shell select {
+  color: var(--emsp-heading);
+  background-color: var(--emsp-input);
+}
+
+.maxton-portal-shell input::placeholder,
+.maxton-portal-shell textarea::placeholder {
+  color: var(--emsp-muted);
+}
+
+.emsp-theme-dark .maxton-portal-shell .border-slate-200,
+.emsp-theme-dark .maxton-portal-shell .border-slate-200\/90,
+.emsp-theme-dark .maxton-portal-shell .border-slate-300 {
+  border-color: var(--emsp-border) !important;
+}
+
+.emsp-theme-dark .maxton-portal-shell .shadow-maxton,
+.emsp-theme-dark .maxton-portal-shell .shadow-maxton-card {
+  box-shadow: 0 16px 44px -28px rgba(0, 0, 0, 0.85);
+}
+
+.maxton-portal-shell .maxton-sidebar .text-white,
+.maxton-portal-shell .maxton-sidebar-student .text-white {
+  color: var(--emsp-sidebar-text) !important;
+}
+
+.maxton-portal-shell .maxton-sidebar .text-white\/65,
+.maxton-portal-shell .maxton-sidebar .text-white\/72,
+.maxton-portal-shell .maxton-sidebar .text-white\/75,
+.maxton-portal-shell .maxton-sidebar .text-white\/85,
+.maxton-portal-shell .maxton-sidebar-student .text-white\/65,
+.maxton-portal-shell .maxton-sidebar-student .text-white\/75,
+.maxton-portal-shell .maxton-sidebar-student .text-white\/85 {
+  color: var(--emsp-sidebar-muted) !important;
+}
+
+.maxton-portal-shell .maxton-sidebar .bg-gradient-to-r.text-white,
+.maxton-portal-shell .maxton-sidebar-student .bg-emerald-500.text-white {
+  color: #ffffff !important;
+}
+
+.maxton-portal-shell .maxton-sidebar .bg-white\/10,
+.maxton-portal-shell .maxton-sidebar .bg-white\/\[0\.07\],
+.maxton-portal-shell .maxton-sidebar-student .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.emsp-theme-dark .maxton-portal-shell .maxton-sidebar .bg-white\/10,
+.emsp-theme-dark .maxton-portal-shell .maxton-sidebar .bg-white\/\[0\.07\],
+.emsp-theme-dark .maxton-portal-shell .maxton-sidebar-student .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

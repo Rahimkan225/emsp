@@ -328,9 +328,9 @@ const AdminStudentsPage = () => {
         />
       </div>
 
-      <SurfaceCard className="p-5">
+      <SurfaceCard className="emsp-panel p-5">
         <div className={`grid gap-4 ${isLegacyDataset ? "lg:grid-cols-[1.6fr_1fr]" : "lg:grid-cols-[1.6fr_repeat(3,1fr)]"}`}>
-          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <label className="emsp-panel flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
             <Search size={18} className="text-slate-400" />
             <input
               value={search}
@@ -343,7 +343,7 @@ const AdminStudentsPage = () => {
           <select
             value={status}
             onChange={(event) => setStatus(event.target.value as "" | "active" | "inactive")}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+            className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
           >
             <option value="">Tous les statuts</option>
             <option value="active">Actifs</option>
@@ -354,7 +354,7 @@ const AdminStudentsPage = () => {
               <select
                 value={country}
                 onChange={(event) => setCountry(event.target.value)}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+                className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
               >
                 <option value="">Tous les pays</option>
                 {countryOptions.map((item) => (
@@ -366,7 +366,7 @@ const AdminStudentsPage = () => {
               <select
                 value={formation}
                 onChange={(event) => setFormation(event.target.value)}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+                className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
               >
                 <option value="">Toutes les filieres</option>
                 {formationOptions.map((item) => (
@@ -381,7 +381,7 @@ const AdminStudentsPage = () => {
       </SurfaceCard>
 
       <div className="grid gap-6 2xl:grid-cols-[1.35fr_0.65fr]">
-        <SurfaceCard className="overflow-hidden">
+        <SurfaceCard className="emsp-panel overflow-hidden">
           <div className="border-b border-slate-200 px-6 py-5">
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Liste officielle</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-dark">{isLegacyDataset ? "Etudiants de la base emsp" : "Cohortes et dossiers"}</h2>
@@ -483,7 +483,7 @@ const AdminStudentsPage = () => {
         </SurfaceCard>
 
         <div className="space-y-6">
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-secondary">Gestion</p>
@@ -782,7 +782,7 @@ const AdminStudentsPage = () => {
             )}
           </SurfaceCard>
 
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <div className="mb-5 flex items-center gap-3">
               <div className="rounded-2xl bg-secondary/10 p-3 text-secondary">
                 <Users size={18} />
@@ -799,7 +799,7 @@ const AdminStudentsPage = () => {
             )}
           </SurfaceCard>
 
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <div className="mb-5 flex items-center gap-3">
               <div className="rounded-2xl bg-primary/40 p-3 text-dark">
                 <GraduationCap size={18} />

@@ -6,6 +6,7 @@ import type {
   AdminPortalStudentPayload,
   AdminStudentsData,
   AdminStudentOptionsData,
+  AdminTeacher,
   EtudiantProfile,
   ForumDiscussion,
   NotesSemesterGroup,
@@ -101,6 +102,7 @@ interface RawNoteRow {
   annee_academique: string;
   mention: string;
   validation: boolean;
+  moyenne_promotion?: number | string;
 }
 
 interface RawNotesGroup {
@@ -150,7 +152,7 @@ interface RawPaymentsPayload {
     student_name: string;
     matricule: string;
     montant: string | number;
-    operateur: "orange" | "mtn" | "wave";
+    operateur: "orange" | "mtn" | "moov" | "wave";
     phone_number: string;
     reference: string;
     statut: "pending" | "confirmed" | "failed" | "refunded";
@@ -293,6 +295,18 @@ interface RawAdminAcademicOverview {
   }>;
 }
 
+interface RawAdminTeacher {
+  id: number;
+  full_name: string;
+  specialite: string;
+  email: string;
+  phone: string;
+  statut: AdminTeacher["statut"];
+  disponibilite: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 const mapUser = (user: RawEtudiantProfile["user"]) => ({
   id: user.id,
   email: user.email,
@@ -317,28 +331,30 @@ const mapMedia = (item?: RawEtudiantProfile["photo"]) =>
       }
     : undefined;
 
+const fetchEtudiantProfileFromRaw = (data: RawEtudiantProfile): EtudiantProfile => ({
+  id: data.id,
+  matricule: data.matricule,
+  user: mapUser(data.user),
+  formationName: data.formation_name,
+  formationCode: data.formation_code,
+  promotion: data.promotion
+    ? {
+        id: data.promotion.id,
+        label: data.promotion.label,
+        yearStart: data.promotion.year_start,
+        yearEnd: data.promotion.year_end,
+        academicYear: data.promotion.academic_year,
+      }
+    : undefined,
+  pays: data.pays,
+  photo: mapMedia(data.photo),
+  rangPromotion: data.rang_promotion,
+  soldeScolarite: data.solde_scolarite,
+});
+
 export async function fetchEtudiantProfile() {
   const response = await axiosInstance.get<RawEtudiantProfile>("/scolarite/me/");
-  return {
-    id: response.data.id,
-    matricule: response.data.matricule,
-    user: mapUser(response.data.user),
-    formationName: response.data.formation_name,
-    formationCode: response.data.formation_code,
-    promotion: response.data.promotion
-      ? {
-          id: response.data.promotion.id,
-          label: response.data.promotion.label,
-          yearStart: response.data.promotion.year_start,
-          yearEnd: response.data.promotion.year_end,
-          academicYear: response.data.promotion.academic_year,
-        }
-      : undefined,
-    pays: response.data.pays,
-    photo: mapMedia(response.data.photo),
-    rangPromotion: response.data.rang_promotion,
-    soldeScolarite: response.data.solde_scolarite,
-  } satisfies EtudiantProfile;
+  return fetchEtudiantProfileFromRaw(response.data);
 }
 
 export async function fetchStudentDashboard() {
@@ -405,6 +421,7 @@ export async function fetchStudentNotes() {
           anneeAcademique: row.annee_academique,
           mention: row.mention,
           validation: row.validation,
+          moyennePromotion: row.moyenne_promotion === undefined ? undefined : Number(row.moyenne_promotion),
         })),
         totals: {
           average: Number(group.totals.average),
@@ -500,6 +517,37 @@ export async function fetchStudentPayments() {
 export async function initiateStudentPayment(payload: PaymentInitiationPayload) {
   const response = await axiosInstance.post("/comptabilite/payments/initiate/", payload);
   return response.data;
+}
+
+export async function downloadAuthenticatedBlob(url: string) {
+  const response = await axiosInstance.get<Blob>(url, { responseType: "blob" });
+  return response.data;
+}
+
+export async function updateEtudiantProfile(payload: { firstName: string; lastName: string; phone?: string; pays?: string }) {
+  const response = await axiosInstance.patch<RawEtudiantProfile>("/scolarite/me/", {
+    first_name: payload.firstName,
+    last_name: payload.lastName,
+    phone: payload.phone || "",
+    pays: payload.pays || "",
+  });
+  return fetchEtudiantProfileFromRaw(response.data);
+}
+
+export async function uploadEtudiantPhoto(file: File) {
+  const formData = new FormData();
+  formData.append("photo", file);
+  const response = await axiosInstance.post<RawEtudiantProfile>("/scolarite/me/photo/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return fetchEtudiantProfileFromRaw(response.data);
+}
+
+export async function changeEtudiantPassword(payload: { currentPassword: string; newPassword: string }) {
+  await axiosInstance.post("/auth/change-password/", {
+    current_password: payload.currentPassword,
+    new_password: payload.newPassword,
+  });
 }
 
 export async function fetchAdminDashboard() {
@@ -714,4 +762,57 @@ export async function fetchAdminAcademicOverview() {
       average: item.average,
     })),
   } satisfies AdminAcademicOverviewData;
+}
+
+export async function fetchAdminTeachers() {
+  const response = await axiosInstance.get<RawAdminTeacher[]>("/scolarite/admin/enseignants/");
+  return response.data.map(
+    (item) =>
+      ({
+        id: item.id,
+        fullName: item.full_name,
+        specialite: item.specialite,
+        email: item.email,
+        phone: item.phone,
+        statut: item.statut,
+        disponibilite: item.disponibilite,
+        isActive: item.is_active,
+        createdAt: item.created_at,
+      }) satisfies AdminTeacher,
+  );
+}
+
+export async function createAdminTeacher(payload: {
+  fullName: string;
+  specialite?: string;
+  email?: string;
+  phone?: string;
+  statut?: AdminTeacher["statut"];
+  disponibilite?: string;
+  isActive?: boolean;
+}) {
+  const response = await axiosInstance.post<RawAdminTeacher>("/scolarite/admin/enseignants/", {
+    full_name: payload.fullName,
+    specialite: payload.specialite || "",
+    email: payload.email || "",
+    phone: payload.phone || "",
+    statut: payload.statut || "disponible",
+    disponibilite: payload.disponibilite || "",
+    is_active: payload.isActive ?? true,
+  });
+  return {
+    id: response.data.id,
+    fullName: response.data.full_name,
+    specialite: response.data.specialite,
+    email: response.data.email,
+    phone: response.data.phone,
+    statut: response.data.statut,
+    disponibilite: response.data.disponibilite,
+    isActive: response.data.is_active,
+    createdAt: response.data.created_at,
+  } satisfies AdminTeacher;
+}
+
+export async function deleteAdminTeacher(id: number) {
+  await axiosInstance.delete(`/scolarite/admin/enseignants/${id}/`);
 }

@@ -48,7 +48,7 @@ const AdminAcademicPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Promotions</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Effectifs par promotion</h2>
           <div className="mt-6">
@@ -61,7 +61,7 @@ const AdminAcademicPage = () => {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <div className="flex items-center gap-3">
             <div className="rounded-2xl bg-primary/40 p-3 text-dark">
               <Medal size={18} />
@@ -99,7 +99,7 @@ const AdminAcademicPage = () => {
         </SurfaceCard>
       </div>
 
-      <SurfaceCard className="overflow-hidden">
+      <SurfaceCard className="emsp-panel overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-5">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Planning</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Cours et examens a venir</h2>
@@ -147,7 +147,7 @@ const AdminAcademicPage = () => {
         </div>
       </SurfaceCard>
 
-      <SurfaceCard className="overflow-hidden">
+      <SurfaceCard className="emsp-panel overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-5">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Documents</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Dernieres productions</h2>

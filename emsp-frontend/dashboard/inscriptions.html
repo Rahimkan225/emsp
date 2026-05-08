@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="blue-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMSP - Candidatures</title>
+  <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png">
+  <link href="assets/css/pace.min.css" rel="stylesheet">
+  <script src="assets/js/pace.min.js"></script>
+  <link href="assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/plugins/metismenu/metisMenu.min.css">
+  <link rel="stylesheet" href="assets/plugins/metismenu/mm-vertical.css">
+  <link rel="stylesheet" href="assets/plugins/simplebar/css/simplebar.css">
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="assets/css/bootstrap-extended.css" rel="stylesheet">
+  <link href="sass/main.css" rel="stylesheet">
+  <link href="sass/dark-theme.css" rel="stylesheet">
+  <link href="sass/blue-theme.css" rel="stylesheet">
+  <link href="sass/semi-dark.css" rel="stylesheet">
+  <link href="sass/bordered-theme.css" rel="stylesheet">
+  <link href="sass/responsive.css" rel="stylesheet">
+</head>
+<body>
+  <header class="top-header">
+    <nav class="navbar navbar-expand align-items-center gap-4">
+      <div class="btn-toggle"><a href="javascript:;"><i class="material-icons-outlined">menu</i></a></div>
+      <div class="search-bar flex-grow-1">
+        <div class="position-relative">
+          <input class="form-control rounded-5 px-5 search-control d-lg-block d-none" type="text" placeholder="Rechercher un dossier, un nom, un email ou une filiere">
+          <span class="material-icons-outlined position-absolute d-lg-block d-none ms-3 translate-middle-y start-0 top-50">search</span>
+        </div>
+      </div>
+      <ul class="navbar-nav gap-1 nav-right-links align-items-center">
+        <li class="nav-item dropdown">
+          <a href="javascript:;" class="dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown"><img src="assets/images/avatars/01.png" class="rounded-circle p-1 border" width="45" height="45" alt=""></a>
+          <div class="dropdown-menu dropdown-user dropdown-menu-end shadow">
+            <a class="dropdown-item gap-2 py-2" href="javascript:;"><div class="text-center"><h5 class="user-name mb-0 fw-bold" id="dashboard-user-name">Utilisateur</h5><p class="mb-0 text-muted" id="dashboard-user-role"></p></div></a>
+            <hr class="dropdown-divider">
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:;" onclick="logout()"><i class="material-icons-outlined">power_settings_new</i>Deconnexion</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header"><div class="logo-name flex-grow-1"><h5 class="mb-0">EMSP</h5></div><div class="sidebar-close"><span class="material-icons-outlined">close</span></div></div>
+    <div class="sidebar-nav">
+      <ul class="metismenu" id="sidenav">
+        <li><a href="index.html"><div class="parent-icon"><i class="material-icons-outlined">home</i></div><div class="menu-title">Tableau de bord</div></a></li>
+        <li class="menu-label">Scolarite</li>
+        <li data-permission="etudiants"><a href="etudiants.html"><div class="parent-icon"><i class="material-icons-outlined">people</i></div><div class="menu-title">Etudiants</div></a></li>
+        <li data-permission="promotions"><a href="promotions.html"><div class="parent-icon"><i class="material-icons-outlined">school</i></div><div class="menu-title">Promotions</div></a></li>
+        <li data-permission="notes"><a href="notes.html"><div class="parent-icon"><i class="material-icons-outlined">grading</i></div><div class="menu-title">Notes</div></a></li>
+        <li data-permission="emploi-du-temps"><a href="emploi-du-temps.html"><div class="parent-icon"><i class="material-icons-outlined">calendar_month</i></div><div class="menu-title">Emploi du temps</div></a></li>
+        <li class="menu-label">Gestion</li>
+        <li data-permission="inscriptions" class="mm-active"><a href="inscriptions.html"><div class="parent-icon"><i class="material-icons-outlined">assignment</i></div><div class="menu-title">Inscriptions</div></a></li>
+        <li data-permission="formations"><a href="formations.html"><div class="parent-icon"><i class="material-icons-outlined">menu_book</i></div><div class="menu-title">Formations</div></a></li>
+        <li data-permission="comptabilite"><a href="comptabilite.html"><div class="parent-icon"><i class="material-icons-outlined">account_balance</i></div><div class="menu-title">Comptabilite</div></a></li>
+        <li class="menu-label">Contenu</li>
+        <li data-permission="actualites"><a href="actualites.html"><div class="parent-icon"><i class="material-icons-outlined">article</i></div><div class="menu-title">Actualites</div></a></li>
+        <li data-permission="mediatheque"><a href="mediatheque.html"><div class="parent-icon"><i class="material-icons-outlined">perm_media</i></div><div class="menu-title">Mediatheque</div></a></li>
+        <li class="menu-label">Administration</li>
+        <li data-permission="utilisateurs"><a href="utilisateurs.html"><div class="parent-icon"><i class="material-icons-outlined">manage_accounts</i></div><div class="menu-title">Utilisateurs</div></a></li>
+        <li data-permission="configuration"><a href="configuration.html"><div class="parent-icon"><i class="material-icons-outlined">settings</i></div><div class="menu-title">Configuration</div></a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <div class="main-content">
+      <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Admissions</div>
+        <div class="ps-3"><ol class="breadcrumb mb-0 p-0"><li class="breadcrumb-item"><a href="index.html"><i class="material-icons-outlined">home</i></a></li><li class="breadcrumb-item active">Candidatures</li></ol></div>
+      </div>
+      <div id="alert-container"></div>
+      <p class="text-muted">Consultez chaque dossier de candidature, ouvrez les pieces jointes et confirmez rapidement les admissions depuis l'administration.</p>
+
+      <div class="row">
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Total dossiers</p><h4 id="summaryTotal">0</h4><small class="text-muted">candidatures recensees</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">A traiter</p><h4 id="summaryPending">0</h4><small class="text-muted">soumis ou en examen</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Confirmes</p><h4 id="summaryAccepted">0</h4><small class="text-muted">dossiers valides</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Refuses</p><h4 id="summaryRejected">0</h4><small class="text-muted">dossiers closes</small></div></div></div>
+      </div>
+
+      <div class="card rounded-4">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-lg-8"><label class="form-label">Recherche</label><input type="search" id="filterSearch" class="form-control" placeholder="Rechercher un dossier, un nom, un email ou une filiere"></div>
+            <div class="col-lg-3"><label class="form-label">Statut</label><select id="filterStatus" class="form-select"><option value="">Tous les statuts</option><option value="submitted">Soumis</option><option value="under_review">En examen</option><option value="accepted">Confirmes</option><option value="rejected">Refuses</option></select></div>
+            <div class="col-lg-1 d-flex align-items-end"><button class="btn btn-outline-primary w-100" id="btnFilter"><i class="material-icons-outlined" style="vertical-align:middle;font-size:18px">filter_list</i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xxl-7 d-flex">
+          <div class="card rounded-4 w-100">
+            <div class="card-body">
+              <p class="text-uppercase text-primary mb-1">Dossiers recus</p>
+              <h5>Liste des candidatures</h5>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead><tr><th>Candidat</th><th>Formation</th><th>Nationalite</th><th>Depot</th><th>Statut</th></tr></thead>
+                  <tbody id="applicationsBody"><tr><td colspan="5" class="text-center text-muted py-4">Chargement...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xxl-5 d-flex">
+          <div class="card rounded-4 w-100">
+            <div class="card-body">
+              <div class="d-flex align-items-start justify-content-between gap-3">
+                <div>
+                  <p class="text-uppercase text-primary mb-1">Dossier detaille</p>
+                  <h5 id="detailTitle">Selectionnez un dossier</h5>
+                </div>
+                <span id="detailStatus"></span>
+              </div>
+              <div id="detailFeedback"></div>
+              <div id="applicationDetail" class="mt-3"><p class="text-muted">Selectionnez une candidature pour consulter son dossier complet.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="overlay btn-toggle"></div>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
+  <script src="assets/plugins/metismenu/metisMenu.min.js"></script>
+  <script src="assets/plugins/simplebar/js/simplebar.min.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="js/dashboard-api.js"></script>
+  <script>
+    if (!requireAuth()) {}
+    if (!checkPermission('inscriptions')) {}
+    filterSidebarMenu();
+
+    const pageState = readPageState('admin-applications', { search: '', status: '' });
+    let applicationsData = { summary: {}, results: [] };
+    let selectedApplicationId = null;
+
+    function fullName(item) {
+      return `${item.first_name || ''} ${item.last_name || ''}`.trim();
+    }
+
+    function buildQuery() {
+      const search = document.getElementById('filterSearch').value.trim();
+      const status = document.getElementById('filterStatus').value;
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      savePageState('admin-applications', { search, status });
+      return params.toString();
+    }
+
+    function renderSummary() {
+      const summary = applicationsData.summary || {};
+      document.getElementById('summaryTotal').textContent = Number(summary.total || 0).toLocaleString('fr-FR');
+      document.getElementById('summaryPending').textContent = Number(summary.pending || 0).toLocaleString('fr-FR');
+      document.getElementById('summaryAccepted').textContent = Number(summary.accepted || 0).toLocaleString('fr-FR');
+      document.getElementById('summaryRejected').textContent = Number(summary.rejected || 0).toLocaleString('fr-FR');
+    }
+
+    function renderApplicationsTable() {
+      const rows = applicationsData.results || [];
+      const tbody = document.getElementById('applicationsBody');
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Aucune candidature ne correspond aux filtres selectionnes.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map((item) => `
+        <tr style="cursor:pointer" class="${selectedApplicationId === item.id ? 'table-primary' : ''}" onclick="selectApplication(${item.id})">
+          <td><div class="fw-semibold">${escapeHtml(fullName(item))}</div><small class="text-muted">${escapeHtml(item.dossier_number)}</small></td>
+          <td><div class="fw-semibold">${escapeHtml(item.formation_code)}</div><small class="text-muted">${escapeHtml(item.formation_name)}</small></td>
+          <td>${escapeHtml(item.nationality_label)}</td>
+          <td>${formatDateTime(item.created_at)}</td>
+          <td>${getAdminStatusBadge(item.status, item.status_label)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadApplications() {
+      const query = buildQuery();
+      const tbody = document.getElementById('applicationsBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Chargement...</td></tr>';
+      try {
+        applicationsData = await apiCall(`inscriptions/admin/candidatures/${query ? `?${query}` : ''}`);
+        renderSummary();
+        if (!applicationsData.results.some((item) => item.id === selectedApplicationId)) {
+          selectedApplicationId = applicationsData.results[0]?.id || null;
+        }
+        renderApplicationsTable();
+        if (selectedApplicationId) {
+          await loadApplicationDetail(selectedApplicationId);
+        } else {
+          document.getElementById('detailTitle').textContent = 'Selectionnez un dossier';
+          document.getElementById('detailStatus').innerHTML = '';
+          document.getElementById('applicationDetail').innerHTML = '<p class="text-muted">Selectionnez une candidature pour consulter son dossier complet.</p>';
+        }
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Erreur de chargement</td></tr>';
+        showAlert(parseApiError(error, 'Erreur lors du chargement des candidatures'));
+      }
+    }
+
+    async function selectApplication(id) {
+      selectedApplicationId = id;
+      renderApplicationsTable();
+      await loadApplicationDetail(id);
+    }
+
+    window.selectApplication = selectApplication;
+
+    function renderDocuments(detail) {
+      const links = [
+        { label: 'Accuse de reception', url: detail.acknowledgement_url },
+        { label: 'Releve de notes', url: detail.transcript_url },
+        { label: 'Diplome', url: detail.diploma_url },
+        { label: 'Lettre de motivation', url: detail.motivation_file_url },
+      ].filter((item) => item.url);
+      (detail.additional_documents || []).forEach((doc) => links.push({ label: `Document complementaire : ${doc.original_name}`, url: doc.url }));
+      return links.length
+        ? links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="material-icons-outlined me-1" style="font-size:16px;vertical-align:middle">download</i>${escapeHtml(item.label)}</a>`).join('')
+        : '<p class="text-muted mb-0">Aucune piece jointe disponible.</p>';
+    }
+
+    async function loadApplicationDetail(id) {
+      const container = document.getElementById('applicationDetail');
+      container.innerHTML = '<div class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Chargement du dossier...</div>';
+      document.getElementById('detailFeedback').innerHTML = '';
+      try {
+        const detail = await apiCall(`inscriptions/admin/candidatures/${id}/`);
+        document.getElementById('detailTitle').textContent = fullName(detail);
+        document.getElementById('detailStatus').innerHTML = getAdminStatusBadge(detail.status, detail.status_label);
+        container.innerHTML = `
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <button class="btn btn-outline-info btn-sm" onclick="updateApplicationStatus('under_review')">Marquer en examen</button>
+            <button class="btn btn-success btn-sm" onclick="updateApplicationStatus('accepted')"><i class="material-icons-outlined me-1" style="font-size:16px;vertical-align:middle">task_alt</i>Confirmer le dossier</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="updateApplicationStatus('rejected')">Refuser</button>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6"><div class="rounded-4 bg-light p-3"><small class="text-muted">Numero de dossier</small><div class="fw-semibold">${escapeHtml(detail.dossier_number)}</div></div></div>
+            <div class="col-md-6"><div class="rounded-4 bg-light p-3"><small class="text-muted">Date de depot</small><div class="fw-semibold">${formatDateTime(detail.created_at)}</div></div></div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="border rounded-4 p-3 h-100">
+                <h6>Identite</h6>
+                <p class="mb-2"><strong>Nom :</strong> ${escapeHtml(fullName(detail))}</p>
+                <p class="mb-2"><strong>Email :</strong> ${escapeHtml(detail.email)}</p>
+                <p class="mb-2"><strong>Telephone :</strong> ${escapeHtml(detail.phone)}</p>
+                <p class="mb-2"><strong>WhatsApp :</strong> ${escapeHtml(detail.whatsapp || 'Non renseigne')}</p>
+                <p class="mb-2"><strong>Naissance :</strong> ${formatDate(detail.date_of_birth)} a ${escapeHtml(detail.place_of_birth)}</p>
+                <p class="mb-2"><strong>Nationalite :</strong> ${escapeHtml(detail.nationality_label)}</p>
+                <p class="mb-2"><strong>Residence :</strong> ${escapeHtml(detail.residence_country)}</p>
+                <p class="mb-0"><strong>Adresse :</strong> ${escapeHtml(detail.address)}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded-4 p-3 h-100">
+                <h6>Parcours</h6>
+                <p class="mb-2"><strong>Formation :</strong> ${escapeHtml(detail.formation_code)} - ${escapeHtml(detail.formation_name)}</p>
+                <p class="mb-2"><strong>Diplome :</strong> ${escapeHtml(detail.highest_degree_label)}</p>
+                <p class="mb-2"><strong>Etablissement :</strong> ${escapeHtml(detail.institution_name)}</p>
+                <p class="mb-2"><strong>Annee d'obtention :</strong> ${escapeHtml(detail.graduation_year)}</p>
+                <p class="mb-2"><strong>Pays du diplome :</strong> ${escapeHtml(detail.diploma_country)}</p>
+                <p class="mb-0"><strong>Experience :</strong> ${escapeHtml(detail.professional_experience || 'Non renseignee')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="border rounded-4 p-3 mt-3">
+            <h6>Motivation</h6>
+            <p class="mb-0" style="white-space:pre-line">${escapeHtml(detail.motivation_text || 'Aucun texte de motivation saisi.')}</p>
+          </div>
+
+          <div class="border rounded-4 p-3 mt-3">
+            <h6>Pieces jointes</h6>
+            ${renderDocuments(detail)}
+          </div>
+        `;
+      } catch (error) {
+        container.innerHTML = '<p class="text-danger">Erreur de chargement du dossier.</p>';
+        showAlert(parseApiError(error, 'Erreur lors du chargement du dossier'));
+      }
+    }
+
+    async function updateApplicationStatus(status) {
+      if (!selectedApplicationId) return;
+      const feedback = document.getElementById('detailFeedback');
+      feedback.innerHTML = '';
+      try {
+        await apiCall(`inscriptions/admin/candidatures/${selectedApplicationId}/`, { method: 'PATCH', body: JSON.stringify({ status }) });
+        const text = status === 'accepted'
+          ? 'Le dossier a ete confirme avec succes.'
+          : status === 'under_review'
+            ? "Le dossier a ete marque comme en cours d'examen."
+            : 'Le dossier a ete marque comme refuse.';
+        feedback.innerHTML = `<div class="alert alert-success border-0 mt-3">${escapeHtml(text)}</div>`;
+        await loadApplications();
+      } catch (error) {
+        feedback.innerHTML = `<div class="alert alert-danger border-0 mt-3">${escapeHtml(parseApiError(error, 'Impossible de mettre a jour ce dossier.'))}</div>`;
+      }
+    }
+
+    window.updateApplicationStatus = updateApplicationStatus;
+
+    document.getElementById('btnFilter').addEventListener('click', loadApplications);
+    document.getElementById('filterSearch').addEventListener('keydown', (event) => { if (event.key === 'Enter') loadApplications(); });
+    document.getElementById('filterStatus').addEventListener('change', loadApplications);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('filterSearch').value = pageState.search;
+      document.getElementById('filterStatus').value = pageState.status;
+      loadApplications();
+    });
+  </script>
+</body>
+</html>

@@ -108,6 +108,7 @@ export interface NoteRow {
   anneeAcademique: string;
   mention: string;
   validation: boolean;
+  moyennePromotion?: number;
 }
 
 export interface NotesSemesterGroup {
@@ -168,7 +169,7 @@ export interface PaymentTransaction {
   studentName: string;
   matricule: string;
   montant: number;
-  operateur: "orange" | "mtn" | "wave";
+  operateur: "orange" | "mtn" | "moov" | "wave";
   phoneNumber: string;
   reference: string;
   statut: "pending" | "confirmed" | "failed" | "refunded";
@@ -178,7 +179,7 @@ export interface PaymentTransaction {
 }
 
 export interface PaymentInitiationPayload {
-  operateur: "orange" | "mtn" | "wave";
+  operateur: "orange" | "mtn" | "moov";
   phone: string;
   montant: number;
   description: string;
@@ -205,6 +206,18 @@ export interface AdminDashboardData {
     matricule: string;
     photoUrl?: string;
   }>;
+}
+
+export interface AdminTeacher {
+  id: number;
+  fullName: string;
+  specialite: string;
+  email: string;
+  phone: string;
+  statut: "disponible" | "occupe" | "mission";
+  disponibilite: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface AdminStudent {
@@ -448,6 +461,16 @@ export interface AdminMediaPayload {
   videoType?: "upload" | "youtube";
   videoUrl?: string;
   file?: File | null;
+}
+
+export interface AdminNewsPayload {
+  title: string;
+  slug?: string;
+  excerpt: string;
+  content: string;
+  tags: string[];
+  isPublished: boolean;
+  coverId?: number | null;
 }
 
 export interface AdminNewsArticle {

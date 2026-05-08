@@ -18,6 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "role",
             "phone",
+            "is_active",
             "avatar_url",
         ]
 

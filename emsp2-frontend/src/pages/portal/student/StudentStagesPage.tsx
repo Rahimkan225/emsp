@@ -18,7 +18,14 @@ const StudentStagesPage = () => {
 
   return (
     <div className="space-y-6">
-      <SurfaceCard className="p-6">
+      <section className="emsp-panel flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-slate-500">Career path</p>
+          <h2 className="mt-1 font-display text-xl font-bold text-slate-900">Stages & opportunites</h2>
+        </div>
+      </section>
+
+      <SurfaceCard className="emsp-panel p-6">
         <p className="text-sm uppercase tracking-[0.24em] text-secondary">Stages</p>
         <h1 className="mt-2 font-display text-3xl font-bold text-dark">Offres & opportunites</h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
@@ -42,11 +49,11 @@ const StudentStagesPage = () => {
         </div>
       </SurfaceCard>
 
-      <SurfaceCard className="p-6">
+      <SurfaceCard className="emsp-panel p-6">
         <div className="space-y-4">
           {opportunities.length ? (
             opportunities.map((item) => (
-              <article key={item.id} className="rounded-3xl border border-slate-200 p-5">
+              <article key={item.id} className="emsp-panel rounded-3xl p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h2 className="font-display text-xl font-semibold text-dark">{item.title}</h2>
                   <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-semibold uppercase text-secondary">

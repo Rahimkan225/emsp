@@ -42,11 +42,20 @@ const ActualiteDetailPage = () => {
           <div className="mt-8 overflow-hidden rounded-3xl bg-white shadow-sm">
             <div className="h-[28rem] bg-slate-100">
               {article.coverImage ? (
-                <img
-                  src={article.coverImage.url}
-                  alt={article.coverImage.altText || article.coverImage.title}
-                  className="h-full w-full object-cover"
-                />
+                article.coverImage.type === "video" ? (
+                  <video
+                    src={article.coverImage.url}
+                    controls
+                    className="h-full w-full object-cover"
+                    aria-label={article.coverImage.altText || article.title}
+                  />
+                ) : (
+                  <img
+                    src={article.coverImage.url}
+                    alt={article.coverImage.altText || article.coverImage.title}
+                    className="h-full w-full object-cover"
+                  />
+                )
               ) : (
                 <div className="flex h-full items-center justify-center text-slate-400">Aucune image de couverture</div>
               )}
@@ -90,11 +99,15 @@ const ActualiteDetailPage = () => {
               <article key={item.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="h-48 bg-slate-100">
                   {item.coverImage ? (
-                    <img
-                      src={item.coverImage.url}
-                      alt={item.coverImage.altText || item.coverImage.title}
-                      className="h-full w-full object-cover"
-                    />
+                    item.coverImage.type === "video" ? (
+                      <video src={item.coverImage.url} className="h-full w-full object-cover" muted playsInline />
+                    ) : (
+                      <img
+                        src={item.coverImage.url}
+                        alt={item.coverImage.altText || item.coverImage.title}
+                        className="h-full w-full object-cover"
+                      />
+                    )
                   ) : null}
                 </div>
                 <div className="p-6">

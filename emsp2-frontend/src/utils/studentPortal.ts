@@ -1,6 +1,7 @@
 import type { EtudiantProfile, NotesSemesterGroup, ScheduleItem, StudentDocumentItem } from "../types";
+import { downloadAuthenticatedBlob } from "../api/portalApi";
 
-const downloadBlob = (blob: Blob, fileName: string) => {
+export const downloadBlob = (blob: Blob, fileName: string) => {
   const objectUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = objectUrl;
@@ -34,7 +35,13 @@ const escapeIcs = (value: string) =>
     .replace(/,/g, "\\,")
     .replace(/;/g, "\\;");
 
-export const downloadNotesReport = (group: NotesSemesterGroup) => {
+export const downloadNotesReport = async (group: NotesSemesterGroup) => {
+  if (group.downloadUrl) {
+    const blob = await downloadAuthenticatedBlob(group.downloadUrl);
+    downloadBlob(blob, `releve-notes-${slugify(group.key)}.pdf`);
+    return;
+  }
+
   const csvLines = [
     ["Matiere", "Coefficient", "Credits", "Note", "Mention", "Validation"],
     ...group.rows.map((row) => [

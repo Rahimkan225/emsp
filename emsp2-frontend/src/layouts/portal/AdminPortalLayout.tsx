@@ -2,7 +2,9 @@ import {
   Bell,
   Loader2,
   LogOut,
+  Moon,
   Search,
+  Sun,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Suspense } from "react";
@@ -10,7 +12,9 @@ import { NavLink, Outlet } from "react-router-dom";
 
 import { getVisibleAdminPortalItems } from "../../config/adminPortal";
 import { useAuth } from "../../hooks/useAuth";
+import { usePortalTheme } from "../../hooks/usePortalTheme";
 import { useSiteConfig } from "../../hooks/useSiteConfig";
+import Breadcrumbs from "../../components/common/Breadcrumbs";
 
 const AdminOutletFallback = () => (
   <div className="flex min-h-[320px] items-center justify-center">
@@ -23,6 +27,7 @@ const AdminOutletFallback = () => (
 
 const AdminPortalLayout = () => {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = usePortalTheme();
   const { data: site } = useSiteConfig();
   const items = getVisibleAdminPortalItems(user?.role);
   const roleBadgeClass =
@@ -34,7 +39,7 @@ const AdminPortalLayout = () => {
 
   return (
     <div className="maxton-portal-shell">
-      <div className="mx-auto grid min-h-screen max-w-[1760px] lg:grid-cols-[272px_1fr]">
+      <div className="mx-auto grid min-h-screen max-w-[1760px] lg:grid-cols-[280px_1fr]">
         <aside className="maxton-sidebar flex flex-col px-4 py-6 text-white lg:min-h-screen lg:px-5">
           <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-sm">
             <div className="space-y-3">
@@ -99,9 +104,12 @@ const AdminPortalLayout = () => {
         </aside>
 
         <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 px-4 py-3 backdrop-blur-lg md:px-6">
+          <header className="emsp-topbar sticky top-0 z-30 px-4 py-3 md:px-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-full border border-slate-200 bg-slate-50/90 px-4 py-2.5 shadow-sm md:min-w-[280px]">
+              <div className="w-full">
+                <Breadcrumbs className="mb-3" />
+              </div>
+              <div className="emsp-panel flex min-w-[200px] flex-1 items-center gap-2 rounded-full bg-slate-50/90 px-4 py-2.5 shadow-sm md:min-w-[280px]">
                 <Search size={17} className="shrink-0 text-slate-400" />
                 <input
                   type="search"
@@ -112,13 +120,22 @@ const AdminPortalLayout = () => {
               <div className="flex items-center gap-2 md:gap-3">
                 <button
                   type="button"
-                  className="relative rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600"
+                  onClick={toggleTheme}
+                  className="emsp-panel relative rounded-full p-2.5 text-slate-600 shadow-sm transition hover:border-secondary hover:text-secondary"
+                  aria-label={isDark ? "Activer le theme clair" : "Activer le theme sombre"}
+                  title={isDark ? "Theme clair" : "Theme sombre"}
+                >
+                  {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+                <button
+                  type="button"
+                  className="emsp-panel relative rounded-full p-2.5 text-slate-600 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600"
                   aria-label="Notifications"
                 >
                   <Bell size={18} />
                   <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
                 </button>
-                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
+                <div className="emsp-panel flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 shadow-sm">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-secondary/25 to-secondary/5 text-sm font-bold text-secondary ring-1 ring-secondary/20">
                     {user?.firstName?.[0] || "A"}
                   </div>

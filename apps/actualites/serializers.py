@@ -104,8 +104,8 @@ class ArticleAdminSerializer(serializers.ModelSerializer):
         return "Publie" if obj.is_published else "Brouillon"
 
     def validate_cover_id(self, value):
-        if value and value.type != "image":
-            raise serializers.ValidationError("La couverture doit etre une image.")
+        if value and value.type not in {"image", "video"}:
+            raise serializers.ValidationError("La couverture doit etre une image ou une video.")
         return value
 
     def validate(self, attrs):

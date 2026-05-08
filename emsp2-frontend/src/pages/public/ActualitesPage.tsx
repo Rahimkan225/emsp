@@ -40,38 +40,42 @@ const ActualitesPage = () => {
 
   return (
     <div className="bg-slate-50">
-      <section className="bg-dark py-16 text-white">
+      <section className="bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_58%,#fef9c3_100%)] py-16 text-dark">
         <div className="mx-auto max-w-7xl px-4">
-          <p className="text-sm uppercase tracking-[0.28em] text-primary">Actualites</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-secondary">Actualites</p>
           <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">Vie institutionnelle, annonces et contenus editoriaux</h1>
-          <p className="mt-4 max-w-2xl text-white/85">
+          <p className="mt-4 max-w-2xl text-slate-600">
             Suivez les annonces officielles, les temps forts académiques et les informations utiles de l'EMSP dans un espace clair et facile a parcourir.
           </p>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-[1.9fr_0.9fr]">
+      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-16 lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_300px]">
         <div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-7 md:grid-cols-2">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
-                <div key={`news-skeleton-${index}`} className="h-80 animate-pulse rounded-3xl bg-white" />
+                <div key={`news-skeleton-${index}`} className="h-[440px] animate-pulse rounded-2xl bg-white" />
               ))
             ) : articles.length > 0 ? (
               articles.map((article) => (
-                <article key={article.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                  <div className="h-48 bg-slate-100">
+                <article key={article.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_24px_60px_-42px_rgba(15,23,42,0.45)]">
+                  <div className="h-64 bg-slate-100">
                     {article.coverImage ? (
-                      <img
-                        src={article.coverImage.url}
-                        alt={article.coverImage.altText || article.coverImage.title}
-                        className="h-full w-full object-cover"
-                      />
+                      article.coverImage.type === "video" ? (
+                        <video src={article.coverImage.url} className="h-full w-full object-cover" muted playsInline />
+                      ) : (
+                        <img
+                          src={article.coverImage.url}
+                          alt={article.coverImage.altText || article.coverImage.title}
+                          className="h-full w-full object-cover"
+                        />
+                      )
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-slate-400">Aucune couverture</div>
                     )}
                   </div>
-                  <div className="p-5">
+                  <div className="p-6">
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-full bg-secondary/10 px-2 py-1 text-xs font-semibold text-secondary">
                         {article.category || "Actualite"}
@@ -79,7 +83,7 @@ const ActualitesPage = () => {
                       <span className="text-xs text-slate-500">{formatLongDate(article.publishedAt)}</span>
                     </div>
                     <h2 className="mt-4 line-clamp-2 font-display text-2xl font-semibold text-dark">{article.title}</h2>
-                    <p className="mt-3 line-clamp-4 text-sm text-slate-600">{article.excerpt}</p>
+                    <p className="mt-3 line-clamp-4 text-base leading-7 text-slate-600">{article.excerpt}</p>
                     <Link to={`/actualites/${article.slug}`} className="mt-5 inline-flex rounded-md bg-secondary px-4 py-2 font-semibold text-white">
                       Lire l'article
                     </Link>
@@ -87,7 +91,7 @@ const ActualitesPage = () => {
                 </article>
               ))
             ) : (
-              <div className="rounded-3xl border border-dashed border-secondary/30 bg-white p-10 text-center text-slate-500 md:col-span-2 xl:col-span-3">
+              <div className="rounded-2xl border border-dashed border-secondary/30 bg-white p-10 text-center text-slate-500 md:col-span-2">
                 Aucun article publie ne correspond encore a ces filtres.
               </div>
             )}
@@ -122,11 +126,11 @@ const ActualitesPage = () => {
           </div>
         </div>
 
-        <aside className="space-y-6">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="font-display text-2xl font-semibold text-dark">Recherche</h2>
             <form
-              className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3"
+              className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"
               onSubmit={(event) => {
                 event.preventDefault();
                 updateParams({ search: searchValue || undefined });
@@ -142,7 +146,7 @@ const ActualitesPage = () => {
             </form>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="font-display text-2xl font-semibold text-dark">Filtres</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -163,7 +167,7 @@ const ActualitesPage = () => {
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="font-display text-2xl font-semibold text-dark">Articles recents</h2>
             <div className="mt-5 space-y-4">
               {recentArticles.length > 0 ? (
@@ -171,11 +175,15 @@ const ActualitesPage = () => {
                   <Link key={article.id} to={`/actualites/${article.slug}`} className="flex gap-4 rounded-2xl bg-slate-50 p-3 transition hover:bg-slate-100">
                     <div className="h-20 w-20 flex-none overflow-hidden rounded-2xl bg-slate-200">
                       {article.coverImage ? (
-                        <img
-                          src={article.coverImage.url}
-                          alt={article.coverImage.altText || article.coverImage.title}
-                          className="h-full w-full object-cover"
-                        />
+                        article.coverImage.type === "video" ? (
+                          <video src={article.coverImage.url} className="h-full w-full object-cover" muted playsInline />
+                        ) : (
+                          <img
+                            src={article.coverImage.url}
+                            alt={article.coverImage.altText || article.coverImage.title}
+                            className="h-full w-full object-cover"
+                          />
+                        )
                       ) : null}
                     </div>
                     <div>

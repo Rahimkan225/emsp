@@ -71,7 +71,7 @@ const AdminAccountingPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Recouvrement</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Evolution mensuelle</h2>
           <div className="mt-6">
@@ -79,9 +79,9 @@ const AdminAccountingPage = () => {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard className="p-5">
+        <SurfaceCard className="emsp-panel p-5">
           <div className="grid gap-4 lg:grid-cols-[1.4fr_repeat(2,1fr)]">
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <label className="emsp-panel flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
               <Search size={18} className="text-slate-400" />
               <input
                 value={search}
@@ -94,7 +94,7 @@ const AdminAccountingPage = () => {
             <select
               value={status}
               onChange={(event) => setStatus(event.target.value as "" | "pending" | "confirmed" | "failed" | "refunded")}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+              className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
             >
               <option value="">Tous les statuts</option>
               <option value="confirmed">Confirmes</option>
@@ -105,7 +105,7 @@ const AdminAccountingPage = () => {
             <select
               value={operator}
               onChange={(event) => setOperator(event.target.value as "" | "orange" | "mtn" | "wave")}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+              className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
             >
               <option value="">Tous les operateurs</option>
               <option value="orange">Orange Money</option>
@@ -131,7 +131,7 @@ const AdminAccountingPage = () => {
         </SurfaceCard>
       </div>
 
-      <SurfaceCard className="overflow-hidden">
+      <SurfaceCard className="emsp-panel overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-5">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Transactions</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Journal des paiements</h2>

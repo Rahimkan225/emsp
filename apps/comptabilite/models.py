@@ -13,6 +13,7 @@ class Paiement(models.Model):
     OPERATOR_CHOICES = [
         ("orange", "Orange Money"),
         ("mtn", "MTN MoMo"),
+        ("moov", "Moov Money"),
         ("wave", "Wave"),
     ]
 

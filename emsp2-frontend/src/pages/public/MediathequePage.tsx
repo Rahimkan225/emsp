@@ -15,6 +15,81 @@ const tabs = [
 
 type MediaTab = (typeof tabs)[number]["value"];
 
+const localGalleryImages: MediaItem[] = [
+  {
+    id: -101,
+    title: "Vie etudiante EMSP",
+    url: "/media/imageemsp/IMG-20250705-WA0133.jpg",
+    type: "image",
+    category: "Vie academique",
+    createdAt: "",
+    altText: "Etudiants EMSP reunis dans une salle decoree",
+  },
+  {
+    id: -102,
+    title: "Conference academique",
+    url: "/media/imageemsp/Photo%20de%20Al%C3%A8ve(11).jpg",
+    type: "image",
+    category: "Conferences",
+    createdAt: "",
+    altText: "Conference EMSP en salle",
+  },
+  {
+    id: -103,
+    title: "Ivoire Tech Forum",
+    url: "/media/imageemsp/IMG-20251206-WA0229(1).jpg",
+    type: "image",
+    category: "Evenements",
+    createdAt: "",
+    altText: "Delegation EMSP au Ivoire Tech Forum",
+  },
+  {
+    id: -104,
+    title: "Temps fort academique",
+    url: "/media/imageemsp/IMG-20250605-WA0018.jpg",
+    type: "image",
+    category: "Vie academique",
+    createdAt: "",
+    altText: "Temps fort academique EMSP",
+  },
+  {
+    id: -105,
+    title: "Promotion EMSP",
+    url: "/media/imageemsp/IMG-20250705-WA0078.jpg",
+    type: "image",
+    category: "Vie academique",
+    createdAt: "",
+    altText: "Etudiants EMSP lors d'une activite academique",
+  },
+  {
+    id: -106,
+    title: "Session de formation",
+    url: "/media/imageemsp/Photo%20de%20Al%C3%A8ve(4).jpg",
+    type: "image",
+    category: "Formations",
+    createdAt: "",
+    altText: "Session de formation EMSP",
+  },
+  {
+    id: -107,
+    title: "Rencontre institutionnelle",
+    url: "/media/imageemsp/Photo%20de%20Al%C3%A8ve(9).jpg",
+    type: "image",
+    category: "Conferences",
+    createdAt: "",
+    altText: "Rencontre institutionnelle EMSP",
+  },
+  {
+    id: -108,
+    title: "Communaute EMSP",
+    url: "/media/imageemsp/IMG-20250705-WA0113.jpg",
+    type: "image",
+    category: "Evenements",
+    createdAt: "",
+    altText: "Communaute EMSP reunie",
+  },
+];
+
 const MediathequePage = () => {
   const [activeTab, setActiveTab] = useState<MediaTab>("image");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -23,21 +98,37 @@ const MediathequePage = () => {
 
   const { data: items = [], isLoading } = useMedia(undefined, activeTab);
 
+  const displayItems = useMemo(() => {
+    if (activeTab !== "image") {
+      return items;
+    }
+
+    const seenUrls = new Set<string>();
+    return [...localGalleryImages, ...items].filter((item) => {
+      if (seenUrls.has(item.url)) {
+        return false;
+      }
+
+      seenUrls.add(item.url);
+      return true;
+    });
+  }, [activeTab, items]);
+
   useEffect(() => {
     setSelectedCategory("all");
   }, [activeTab]);
 
   const categories = useMemo(() => {
     const unique = new Set<string>();
-    items.forEach((item) => {
+    displayItems.forEach((item) => {
       if (item.category) unique.add(item.category);
     });
     return ["all", ...Array.from(unique).sort((left, right) => left.localeCompare(right))];
-  }, [items]);
+  }, [displayItems]);
 
   const filteredItems = useMemo(
-    () => items.filter((item) => selectedCategory === "all" || item.category === selectedCategory),
-    [items, selectedCategory],
+    () => displayItems.filter((item) => selectedCategory === "all" || item.category === selectedCategory),
+    [displayItems, selectedCategory],
   );
 
   const photos = filteredItems.filter((item) => item.type === "image");
@@ -66,16 +157,30 @@ const MediathequePage = () => {
 
   return (
     <div className="bg-slate-50">
-      <section className="bg-dark py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4">
-          <p className="text-sm uppercase tracking-[0.28em] text-primary">Mediatheque</p>
-          <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">Galerie dynamique photos, videos et documents</h1>
-          <p className="mt-4 max-w-2xl text-white/85">
-          </p>
+      <section className="bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_58%,#fef9c3_100%)] py-16 text-dark">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-secondary">Mediatheque</p>
+            <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">Galerie dynamique photos, videos et documents</h1>
+            <p className="mt-4 max-w-2xl text-slate-600">
+              Retrouvez les temps forts de l'EMSP, les images de la vie academique, les videos et les ressources publiees par l'ecole.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {localGalleryImages.slice(0, 3).map((item, index) => (
+              <img
+                key={item.id}
+                src={item.url}
+                alt={item.altText || item.title}
+                className={`h-52 w-full rounded-2xl object-cover shadow-sm ${index === 1 ? "mt-8" : ""}`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => (
@@ -95,7 +200,7 @@ const MediathequePage = () => {
               <button
                 key={category}
                 className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
-                  selectedCategory === category ? "bg-dark text-white" : "bg-white text-slate-600 shadow-sm"
+                  selectedCategory === category ? "bg-primary text-dark" : "bg-slate-100 text-slate-600"
                 }`}
                 onClick={() => setSelectedCategory(category)}
               >
@@ -104,20 +209,21 @@ const MediathequePage = () => {
             ))}
           </div>
         </div>
+        </div>
 
         {isLoading ? (
           <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={`media-skeleton-${index}`} className="h-72 animate-pulse rounded-3xl bg-white" />
+              <div key={`media-skeleton-${index}`} className="h-72 animate-pulse rounded-2xl bg-white" />
             ))}
           </div>
         ) : activeTab === "image" ? (
           photos.length > 0 ? (
-            <div className="mt-10 columns-1 gap-4 md:columns-2 xl:columns-3">
+            <div className="mt-10 columns-1 gap-5 md:columns-2 xl:columns-3">
               {photos.map((item, index) => (
                 <button
                   key={item.id}
-                  className="group relative mb-4 block w-full overflow-hidden rounded-3xl bg-white text-left shadow-sm break-inside-avoid"
+                  className="group relative mb-5 block w-full overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200 break-inside-avoid"
                   onClick={() => setLightboxIndex(index)}
                 >
                   <img src={item.url} alt={item.altText || item.title} className="h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
@@ -140,7 +246,7 @@ const MediathequePage = () => {
               ))}
             </div>
           ) : (
-            <div className="mt-10 rounded-3xl border border-dashed border-secondary/30 bg-white p-12 text-center text-slate-500">
+            <div className="mt-10 rounded-2xl border border-dashed border-secondary/30 bg-white p-12 text-center text-slate-500">
               Aucune photo disponible pour le moment.
             </div>
           )
@@ -152,7 +258,7 @@ const MediathequePage = () => {
                 return (
                   <button
                     key={item.id}
-                    className="overflow-hidden rounded-3xl bg-white text-left shadow-sm transition hover:-translate-y-1"
+                    className="overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1"
                     onClick={() => setSelectedVideo(item)}
                   >
                     <div className="relative h-56 bg-dark">
@@ -181,14 +287,14 @@ const MediathequePage = () => {
               })}
             </div>
           ) : (
-            <div className="mt-10 rounded-3xl border border-dashed border-secondary/30 bg-white p-12 text-center text-slate-500">
+            <div className="mt-10 rounded-2xl border border-dashed border-secondary/30 bg-white p-12 text-center text-slate-500">
               Aucune video disponible pour le moment.
             </div>
           )
         ) : documents.length > 0 ? (
           <div className="mt-10 space-y-4">
             {documents.map((item) => (
-              <article key={item.id} className="flex flex-col gap-5 rounded-3xl bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <article key={item.id} className="flex flex-col gap-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 font-semibold text-secondary">
                     {getFileExtension(item.fileName, item.url)}
@@ -214,7 +320,7 @@ const MediathequePage = () => {
             ))}
           </div>
         ) : (
-          <div className="mt-10 rounded-3xl border border-dashed border-secondary/30 bg-white p-12 text-center text-slate-500">
+          <div className="mt-10 rounded-2xl border border-dashed border-secondary/30 bg-white p-12 text-center text-slate-500">
             Aucun document disponible pour le moment.
           </div>
         )}

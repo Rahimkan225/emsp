@@ -52,7 +52,7 @@ const AdminStatisticsPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Admissions</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Evolution annuelle</h2>
           <div className="mt-6">
@@ -60,7 +60,7 @@ const AdminStatisticsPage = () => {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Finances</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Recouvrement et objectifs</h2>
           <div className="mt-6">
@@ -70,7 +70,7 @@ const AdminStatisticsPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Geographie</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Pays membres</h2>
           <div className="mt-6">
@@ -78,7 +78,7 @@ const AdminStatisticsPage = () => {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Offre de formation</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Poids des filieres</h2>
           <div className="mt-6">
@@ -88,7 +88,7 @@ const AdminStatisticsPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <SurfaceCard className="overflow-hidden">
+        <SurfaceCard className="emsp-panel overflow-hidden">
           <div className="border-b border-slate-200 px-6 py-5">
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Inscriptions</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-dark">Derniers mouvements</h2>
@@ -123,7 +123,7 @@ const AdminStatisticsPage = () => {
           </div>
         </SurfaceCard>
 
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <div className="flex items-center gap-3">
             <div className="rounded-2xl bg-secondary/10 p-3 text-secondary">
               <BarChart3 size={18} />

@@ -13,6 +13,10 @@ from apps.mediatheque.models import MediaItem
 
 REACT_DIST_DIR = settings.BASE_DIR / "emsp2-frontend" / "dist"
 REACT_ASSETS_DIR = REACT_DIST_DIR / "assets"
+EMSP_FRONTEND_DIR = settings.BASE_DIR / "emsp-frontend"
+EMSP_FRONTEND_ASSETS_DIR = EMSP_FRONTEND_DIR / "assets"
+EMSP_DASHBOARD_DIR = EMSP_FRONTEND_DIR / "dashboard"
+EMSP_FRONTEND_JS_DIR = EMSP_FRONTEND_DIR / "js"
 
 NOUVEAU_DASHBOARD_DIR = (
     settings.BASE_DIR
@@ -92,6 +96,52 @@ def react_asset(request, path):
 
     content_type, _ = mimetypes.guess_type(asset_path.name)
     return FileResponse(asset_path.open("rb"), content_type=content_type or "application/octet-stream")
+
+
+def emsp_frontend_asset(request, path):
+    asset_path = (EMSP_FRONTEND_ASSETS_DIR / Path(path)).resolve()
+
+    if EMSP_FRONTEND_ASSETS_DIR.resolve() in asset_path.parents and asset_path.is_file():
+        content_type, _ = mimetypes.guess_type(asset_path.name)
+        return FileResponse(asset_path.open("rb"), content_type=content_type or "application/octet-stream")
+
+    return react_asset(request, path)
+
+
+def emsp_frontend_page(request, path):
+    page_path = (EMSP_FRONTEND_DIR / Path(path)).resolve()
+
+    if EMSP_FRONTEND_DIR.resolve() not in page_path.parents or not page_path.is_file():
+        raise Http404("Page frontend introuvable.")
+
+    content_type, _ = mimetypes.guess_type(page_path.name)
+    return FileResponse(page_path.open("rb"), content_type=content_type or "text/html; charset=utf-8")
+
+
+def emsp_frontend_js(request, path):
+    asset_path = (EMSP_FRONTEND_JS_DIR / Path(path)).resolve()
+
+    if EMSP_FRONTEND_JS_DIR.resolve() not in asset_path.parents or not asset_path.is_file():
+        raise Http404("Script frontend introuvable.")
+
+    content_type, _ = mimetypes.guess_type(asset_path.name)
+    return FileResponse(asset_path.open("rb"), content_type=content_type or "application/javascript")
+
+
+def emsp_dashboard_file(request, path="index.html"):
+    requested_path = Path(path or "index.html")
+    if str(path).endswith("/"):
+        requested_path = requested_path / "index.html"
+
+    dashboard_path = (EMSP_DASHBOARD_DIR / requested_path).resolve()
+
+    if EMSP_DASHBOARD_DIR.resolve() not in dashboard_path.parents and dashboard_path != EMSP_DASHBOARD_DIR.resolve():
+        raise Http404("Fichier dashboard introuvable.")
+    if not dashboard_path.is_file():
+        raise Http404("Fichier dashboard introuvable.")
+
+    content_type, _ = mimetypes.guess_type(dashboard_path.name)
+    return FileResponse(dashboard_path.open("rb"), content_type=content_type or "application/octet-stream")
 
 
 def nouveau_dashboard_app(request, portal=None, path=""):

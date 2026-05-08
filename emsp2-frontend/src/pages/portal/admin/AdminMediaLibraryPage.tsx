@@ -1,12 +1,12 @@
-import { CheckCircle2, FileText, Image as ImageIcon, PlayCircle, Search, Shapes, UploadCloud } from "lucide-react";
+import { CheckCircle2, FileText, Image as ImageIcon, Pencil, PlayCircle, Save, Search, Shapes, Trash2, UploadCloud, X } from "lucide-react";
 import { FormEvent, useState } from "react";
 
 import AdminMetricCard from "../../../components/dashboard/AdminMetricCard";
 import AdminPageHeader from "../../../components/dashboard/AdminPageHeader";
 import SurfaceCard from "../../../components/dashboard/SurfaceCard";
-import { useAdminMedia, useCreateAdminMedia } from "../../../hooks/useAdminDashboard";
+import { useAdminMedia, useCreateAdminMedia, useDeleteAdminMedia, useUpdateAdminMedia } from "../../../hooks/useAdminDashboard";
 import { formatDate } from "../../../utils/formatDate";
-import type { AdminMediaPayload } from "../../../types";
+import type { AdminMediaItem, AdminMediaPayload } from "../../../types";
 
 const mediaTypeLabel: Record<string, string> = {
   image: "Image",
@@ -43,6 +43,7 @@ const AdminMediaLibraryPage = () => {
   const [type, setType] = useState<"" | "image" | "video" | "document">("");
   const [category, setCategory] = useState("");
   const [mediaForm, setMediaForm] = useState<AdminMediaPayload>(initialMediaForm);
+  const [editingMedia, setEditingMedia] = useState<AdminMediaItem | null>(null);
   const [feedback, setFeedback] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof AdminMediaPayload, string>>>({});
 
@@ -52,6 +53,8 @@ const AdminMediaLibraryPage = () => {
     category: category || undefined,
   });
   const createMediaMutation = useCreateAdminMedia();
+  const updateMediaMutation = useUpdateAdminMedia();
+  const deleteMediaMutation = useDeleteAdminMedia();
 
   const handleMediaFieldChange = <K extends keyof AdminMediaPayload>(field: K, value: AdminMediaPayload[K]) => {
     setFeedback("");
@@ -68,7 +71,7 @@ const AdminMediaLibraryPage = () => {
     if (mediaForm.type === "video" && mediaForm.videoType === "youtube" && !mediaForm.videoUrl?.trim()) {
       nextErrors.videoUrl = "Le lien YouTube est requis pour ce type de video.";
     }
-    if ((mediaForm.type === "image" || mediaForm.type === "document" || mediaForm.videoType === "upload") && !mediaForm.file) {
+    if (!editingMedia && (mediaForm.type === "image" || mediaForm.type === "document" || mediaForm.videoType === "upload") && !mediaForm.file) {
       nextErrors.file = "Choisis un fichier a televerser.";
     }
 
@@ -82,10 +85,51 @@ const AdminMediaLibraryPage = () => {
       return;
     }
 
-    await createMediaMutation.mutateAsync(mediaForm);
-    setFeedback("Media ajoute avec succes dans la mediatheque.");
+    if (editingMedia) {
+      await updateMediaMutation.mutateAsync({ id: editingMedia.id, payload: mediaForm });
+      setFeedback("Media modifie avec succes.");
+    } else {
+      await createMediaMutation.mutateAsync(mediaForm);
+      setFeedback("Media ajoute avec succes dans la mediatheque.");
+    }
+    setErrors({});
+    setEditingMedia(null);
+    setMediaForm(initialMediaForm);
+  };
+
+  const resetMediaForm = () => {
+    setEditingMedia(null);
+    setFeedback("");
     setErrors({});
     setMediaForm(initialMediaForm);
+  };
+
+  const startEdit = (item: AdminMediaItem) => {
+    setEditingMedia(item);
+    setFeedback("");
+    setErrors({});
+    setMediaForm({
+      title: item.title,
+      description: item.description || "",
+      altText: item.altText || "",
+      type: item.type,
+      category: item.category || "",
+      isActive: item.isActive,
+      videoType: item.videoType || (item.type === "video" ? "upload" : "upload"),
+      videoUrl: item.videoUrl || (item.videoType === "youtube" ? item.url : ""),
+      file: null,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (item: AdminMediaItem) => {
+    const confirmed = window.confirm(`Supprimer le media "${item.title}" ?`);
+    if (!confirmed) return;
+    await deleteMediaMutation.mutateAsync(item.id);
+    if (editingMedia?.id === item.id) {
+      resetMediaForm();
+    }
+    setFeedback("Media supprime.");
   };
 
   if (isLoading || !data) {
@@ -112,17 +156,30 @@ const AdminMediaLibraryPage = () => {
         <AdminMetricCard label="Actifs" value={data.filter((item) => item.isActive).length} helper={`${documents} documents disponibles`} icon={CheckCircle2} accent="text-secondary" />
       </div>
 
-      <SurfaceCard className="p-6">
+      <SurfaceCard className="emsp-panel p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Ajout rapide</p>
-            <h2 className="mt-2 font-display text-2xl font-bold text-dark">Deposer un nouveau media</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold text-dark">
+              {editingMedia ? `Modifier ${editingMedia.title}` : "Deposer un nouveau media"}
+            </h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
               Charge ici des images, videos ou documents. Les medias actifs seront aussitot disponibles dans les APIs publiques et les pages React qui utilisent leur categorie.
             </p>
           </div>
           <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
-            Categories utiles : hero, drapeaux, partenaires, actualites, promo
+            {editingMedia ? (
+              <button
+                type="button"
+                onClick={resetMediaForm}
+                className="inline-flex cursor-pointer items-center gap-2 font-semibold text-slate-600 transition hover:text-secondary"
+              >
+                <X size={16} />
+                Annuler la modification
+              </button>
+            ) : (
+              "Categories utiles : hero, drapeaux, partenaires, actualites, promo"
+            )}
           </div>
         </div>
 
@@ -131,9 +188,9 @@ const AdminMediaLibraryPage = () => {
             {feedback}
           </div>
         ) : null}
-        {createMediaMutation.isError ? (
+        {createMediaMutation.isError || updateMediaMutation.isError ? (
           <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            L'ajout du media a echoue. Verifie le type choisi et les champs obligatoires.
+            L'enregistrement du media a echoue. Verifie le type choisi et les champs obligatoires.
           </div>
         ) : null}
 
@@ -144,7 +201,7 @@ const AdminMediaLibraryPage = () => {
               <input
                 value={mediaForm.title}
                 onChange={(event) => handleMediaFieldChange("title", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 placeholder="Ex. Logo partenaire, video ceremonie, brochure d'admission"
               />
               {errors.title ? <span className="mt-2 block text-sm text-red-600">{errors.title}</span> : null}
@@ -166,7 +223,7 @@ const AdminMediaLibraryPage = () => {
                     videoUrl: nextType === "video" ? current.videoUrl : "",
                   }));
                 }}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               >
                 <option value="image">Image</option>
                 <option value="video">Video</option>
@@ -179,7 +236,7 @@ const AdminMediaLibraryPage = () => {
               <input
                 value={mediaForm.category}
                 onChange={(event) => handleMediaFieldChange("category", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 placeholder="hero, drapeaux, partenaires..."
               />
             </label>
@@ -207,7 +264,7 @@ const AdminMediaLibraryPage = () => {
                 rows={4}
                 value={mediaForm.description}
                 onChange={(event) => handleMediaFieldChange("description", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
             </label>
 
@@ -217,7 +274,7 @@ const AdminMediaLibraryPage = () => {
                 rows={4}
                 value={mediaForm.altText}
                 onChange={(event) => handleMediaFieldChange("altText", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
             </label>
           </div>
@@ -239,7 +296,7 @@ const AdminMediaLibraryPage = () => {
                       file: nextVideoType === "youtube" ? null : current.file,
                     }));
                   }}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 >
                   <option value="upload">Fichier video</option>
                   <option value="youtube">Lien YouTube</option>
@@ -251,7 +308,7 @@ const AdminMediaLibraryPage = () => {
                   <input
                     value={mediaForm.videoUrl}
                     onChange={(event) => handleMediaFieldChange("videoUrl", event.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                    className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                     placeholder="https://www.youtube.com/watch?v=..."
                   />
                   {errors.videoUrl ? <span className="mt-2 block text-sm text-red-600">{errors.videoUrl}</span> : null}
@@ -263,7 +320,7 @@ const AdminMediaLibraryPage = () => {
                     type="file"
                     accept="video/*"
                     onChange={(event) => handleMediaFieldChange("file", event.target.files?.[0] || null)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                    className="emsp-panel w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-secondary"
                   />
                   <p className="mt-2 text-sm text-slate-500">{mediaForm.file ? mediaForm.file.name : "MP4, MOV ou autre format video"}</p>
                   {errors.file ? <span className="mt-2 block text-sm text-red-600">{errors.file}</span> : null}
@@ -279,7 +336,7 @@ const AdminMediaLibraryPage = () => {
                 type="file"
                 accept={mediaForm.type === "image" ? "image/*" : ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"}
                 onChange={(event) => handleMediaFieldChange("file", event.target.files?.[0] || null)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
               <p className="mt-2 text-sm text-slate-500">{mediaForm.file ? mediaForm.file.name : "Choisis le fichier a publier dans la mediatheque"}</p>
               {errors.file ? <span className="mt-2 block text-sm text-red-600">{errors.file}</span> : null}
@@ -298,18 +355,22 @@ const AdminMediaLibraryPage = () => {
 
           <button
             type="submit"
-            disabled={createMediaMutation.isPending}
+            disabled={createMediaMutation.isPending || updateMediaMutation.isPending}
             className="inline-flex items-center gap-2 rounded-2xl bg-secondary px-5 py-3 font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <UploadCloud size={18} />
-            {createMediaMutation.isPending ? "Ajout en cours..." : "Ajouter a la mediatheque"}
+            {editingMedia ? <Save size={18} /> : <UploadCloud size={18} />}
+            {createMediaMutation.isPending || updateMediaMutation.isPending
+              ? "Enregistrement..."
+              : editingMedia
+                ? "Modifier le media"
+                : "Ajouter a la mediatheque"}
           </button>
         </form>
       </SurfaceCard>
 
-      <SurfaceCard className="p-5">
+      <SurfaceCard className="emsp-panel p-5">
         <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr_1fr]">
-          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <label className="emsp-panel flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
             <Search size={18} className="text-slate-400" />
             <input
               value={search}
@@ -322,7 +383,7 @@ const AdminMediaLibraryPage = () => {
           <select
             value={type}
             onChange={(event) => setType(event.target.value as "" | "image" | "video" | "document")}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+            className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
           >
             <option value="">Tous les types</option>
             <option value="image">Images</option>
@@ -332,7 +393,7 @@ const AdminMediaLibraryPage = () => {
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value)}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
+            className="emsp-panel rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none"
           >
             <option value="">Toutes les categories</option>
             {categories.map((item) => (
@@ -347,7 +408,7 @@ const AdminMediaLibraryPage = () => {
       <div className="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
         {data.length ? (
           data.map((item) => (
-            <SurfaceCard key={item.id} className="overflow-hidden">
+            <SurfaceCard key={item.id} className="emsp-panel overflow-hidden">
               <div className="flex h-56 items-center justify-center bg-slate-100">
                 {item.type === "image" && item.url ? (
                   <img src={item.url} alt={item.altText || item.title} className="h-full w-full object-cover" />
@@ -364,13 +425,33 @@ const AdminMediaLibraryPage = () => {
                 )}
               </div>
               <div className="p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                    {mediaTypeLabel[item.type]}
-                  </span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.isActive ? "bg-secondary/10 text-secondary" : "bg-red-50 text-red-600"}`}>
-                    {item.isActive ? "Actif" : "Masque"}
-                  </span>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      {mediaTypeLabel[item.type]}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.isActive ? "bg-secondary/10 text-secondary" : "bg-red-50 text-red-600"}`}>
+                      {item.isActive ? "Actif" : "Masque"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(item)}
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-secondary hover:text-secondary"
+                    >
+                      <Pencil size={14} />
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(item)}
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                    >
+                      <Trash2 size={14} />
+                      Supprimer
+                    </button>
+                  </div>
                 </div>
                 <h2 className="mt-4 font-display text-2xl font-bold text-dark">{item.title}</h2>
                 <p className="mt-2 text-sm text-slate-500">{item.category || "Sans categorie"}</p>
@@ -389,7 +470,7 @@ const AdminMediaLibraryPage = () => {
             </SurfaceCard>
           ))
         ) : (
-          <SurfaceCard className="col-span-full px-6 py-16 text-center text-sm text-slate-500">
+          <SurfaceCard className="emsp-panel col-span-full px-6 py-16 text-center text-sm text-slate-500">
             Aucun media ne correspond aux filtres selectionnes.
           </SurfaceCard>
         )}

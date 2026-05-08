@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { fetchAdminApplicationDetail, fetchAdminApplications, updateAdminApplicationStatus } from "../api/inscriptionsApi";
-import { fetchAdminNews } from "../api/newsApi";
+import { createAdminNewsArticle, deleteAdminNewsArticle, fetchAdminNews, updateAdminNewsArticle } from "../api/newsApi";
 import {
   createAdminStudent,
   fetchAdminDashboard,
@@ -11,9 +11,9 @@ import {
   updateAdminLegacyStudent,
   updateAdminPortalStudent,
 } from "../api/portalApi";
-import { createAdminMedia, fetchAdminMedia } from "../api/mediaApi";
+import { createAdminMedia, deleteAdminMedia, fetchAdminMedia, updateAdminMedia } from "../api/mediaApi";
 import { fetchAdminPayments, fetchFinanceSummary } from "../api/financeApi";
-import type { AdminLegacyStudentPayload, AdminMediaPayload, AdminPortalStudentPayload } from "../types";
+import type { AdminLegacyStudentPayload, AdminMediaPayload, AdminNewsPayload, AdminPortalStudentPayload } from "../types";
 
 export const useAdminDashboard = () =>
   useQuery({
@@ -158,6 +158,34 @@ export const useCreateAdminMedia = () => {
   });
 };
 
+export const useUpdateAdminMedia = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: AdminMediaPayload }) => updateAdminMedia(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "media"] });
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
+};
+
+export const useDeleteAdminMedia = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteAdminMedia(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "media"] });
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
+};
+
 export const useAdminNews = (filters: {
   status?: "published" | "draft";
   search?: string;
@@ -167,3 +195,39 @@ export const useAdminNews = (filters: {
     queryFn: () => fetchAdminNews(filters),
     staleTime: 60 * 1000,
   });
+
+export const useCreateAdminNews = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: AdminNewsPayload) => createAdminNewsArticle(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
+};
+
+export const useUpdateAdminNews = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: AdminNewsPayload }) => updateAdminNewsArticle(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
+};
+
+export const useDeleteAdminNews = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteAdminNewsArticle(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
+};

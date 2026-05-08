@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/common/Layout";
@@ -19,13 +19,6 @@ import FormationsPage from "./pages/public/FormationsPage";
 import HomePage from "./pages/public/HomePage";
 import InscriptionPage from "./pages/public/InscriptionPage";
 import MediathequePage from "./pages/public/MediathequePage";
-import StudentDashboardPage from "./pages/portal/student/StudentDashboardPage";
-import StudentDocumentsPage from "./pages/portal/student/StudentDocumentsPage";
-import StudentForumPage from "./pages/portal/student/StudentForumPage";
-import StudentNotesPage from "./pages/portal/student/StudentNotesPage";
-import StudentPaymentsPage from "./pages/portal/student/StudentPaymentsPage";
-import StudentSchedulePage from "./pages/portal/student/StudentSchedulePage";
-import StudentStagesPage from "./pages/portal/student/StudentStagesPage";
 
 const AdminAcademicPage = lazy(() => import("./pages/portal/admin/AdminAcademicPage"));
 const AdminAccountingPage = lazy(() => import("./pages/portal/admin/AdminAccountingPage"));
@@ -37,6 +30,25 @@ const AdminSettingsPage = lazy(() => import("./pages/portal/admin/AdminSettingsP
 const AdminStatisticsPage = lazy(() => import("./pages/portal/admin/AdminStatisticsPage"));
 const AdminStudentsPage = lazy(() => import("./pages/portal/admin/AdminStudentsPage"));
 const AdminTeachersPage = lazy(() => import("./pages/portal/admin/AdminTeachersPage"));
+const AdminTransportPage = lazy(() => import("./pages/portal/admin/AdminTransportPage"));
+const StudentDashboardPage = lazy(() => import("./pages/portal/student/StudentDashboardPage"));
+const StudentDocumentsPage = lazy(() => import("./pages/portal/student/StudentDocumentsPage"));
+const StudentForumPage = lazy(() => import("./pages/portal/student/StudentForumPage"));
+const StudentNotesPage = lazy(() => import("./pages/portal/student/StudentNotesPage"));
+const StudentPaymentsPage = lazy(() => import("./pages/portal/student/StudentPaymentsPage"));
+const StudentProfilePage = lazy(() => import("./pages/portal/student/StudentProfilePage"));
+const StudentSchedulePage = lazy(() => import("./pages/portal/student/StudentSchedulePage"));
+const StudentStagesPage = lazy(() => import("./pages/portal/student/StudentStagesPage"));
+
+const PortalFallback = () => <div className="h-72 animate-pulse rounded-2xl bg-white shadow-sm" />;
+
+const DashboardExternalRedirect = () => {
+  useEffect(() => {
+    window.location.replace("/dashboard/index.html");
+  }, []);
+
+  return <PortalFallback />;
+};
 
 const AdminIndexRedirect = () => {
   const { user } = useAuth();
@@ -47,6 +59,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/dashboard/*" element={<DashboardExternalRedirect />} />
       <Route path="/register" element={<RegisterPortalPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
@@ -69,13 +82,15 @@ function App() {
       <Route element={<ProtectedRoute allowedRoles={["etudiant"]} />}>
         <Route path="/etudiant" element={<StudentPortalLayout />}>
           <Route index element={<Navigate to="/etudiant/dashboard" replace />} />
-          <Route path="dashboard" element={<StudentDashboardPage />} />
-          <Route path="notes" element={<StudentNotesPage />} />
-          <Route path="edt" element={<StudentSchedulePage />} />
-          <Route path="paiements" element={<StudentPaymentsPage />} />
-          <Route path="documents" element={<StudentDocumentsPage />} />
-          <Route path="forum" element={<StudentForumPage />} />
-          <Route path="stages" element={<StudentStagesPage />} />
+          <Route path="dashboard" element={<Suspense fallback={<PortalFallback />}><StudentDashboardPage /></Suspense>} />
+          <Route path="notes" element={<Suspense fallback={<PortalFallback />}><StudentNotesPage /></Suspense>} />
+          <Route path="edt" element={<Suspense fallback={<PortalFallback />}><StudentSchedulePage /></Suspense>} />
+          <Route path="paiements" element={<Suspense fallback={<PortalFallback />}><StudentPaymentsPage /></Suspense>} />
+          <Route path="documents" element={<Suspense fallback={<PortalFallback />}><StudentDocumentsPage /></Suspense>} />
+          <Route path="communaute" element={<Suspense fallback={<PortalFallback />}><StudentForumPage /></Suspense>} />
+          <Route path="profil" element={<Suspense fallback={<PortalFallback />}><StudentProfilePage /></Suspense>} />
+          <Route path="forum" element={<Navigate to="/etudiant/communaute" replace />} />
+          <Route path="stages" element={<Suspense fallback={<PortalFallback />}><StudentStagesPage /></Suspense>} />
         </Route>
       </Route>
 
@@ -86,6 +101,7 @@ function App() {
           <Route path="etudiants" element={<AdminStudentsPage />} />
           <Route path="scolarite" element={<AdminAcademicPage />} />
           <Route path="comptabilite" element={<AdminAccountingPage />} />
+          <Route path="transport" element={<AdminTransportPage />} />
 
           <Route element={<ProtectedRoute allowedRoles={fullAdminRoles} />}>
             <Route path="dashboard" element={<AdminDashboardPage />} />

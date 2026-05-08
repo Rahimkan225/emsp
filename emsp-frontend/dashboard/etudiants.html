@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="blue-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMSP - Etudiants</title>
+  <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png">
+  <link href="assets/css/pace.min.css" rel="stylesheet">
+  <script src="assets/js/pace.min.js"></script>
+  <link href="assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/plugins/metismenu/metisMenu.min.css">
+  <link rel="stylesheet" href="assets/plugins/metismenu/mm-vertical.css">
+  <link rel="stylesheet" href="assets/plugins/simplebar/css/simplebar.css">
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="assets/css/bootstrap-extended.css" rel="stylesheet">
+  <link href="sass/main.css" rel="stylesheet">
+  <link href="sass/dark-theme.css" rel="stylesheet">
+  <link href="sass/blue-theme.css" rel="stylesheet">
+  <link href="sass/semi-dark.css" rel="stylesheet">
+  <link href="sass/bordered-theme.css" rel="stylesheet">
+  <link href="sass/responsive.css" rel="stylesheet">
+</head>
+<body>
+  <header class="top-header">
+    <nav class="navbar navbar-expand align-items-center gap-4">
+      <div class="btn-toggle"><a href="javascript:;"><i class="material-icons-outlined">menu</i></a></div>
+      <div class="search-bar flex-grow-1">
+        <div class="position-relative">
+          <input class="form-control rounded-5 px-5 search-control d-lg-block d-none" type="text" placeholder="Rechercher un nom, email ou matricule">
+          <span class="material-icons-outlined position-absolute d-lg-block d-none ms-3 translate-middle-y start-0 top-50">search</span>
+        </div>
+      </div>
+      <ul class="navbar-nav gap-1 nav-right-links align-items-center">
+        <li class="nav-item dropdown">
+          <a href="javascript:;" class="dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown"><img src="assets/images/avatars/01.png" class="rounded-circle p-1 border" width="45" height="45" alt=""></a>
+          <div class="dropdown-menu dropdown-user dropdown-menu-end shadow">
+            <a class="dropdown-item gap-2 py-2" href="javascript:;"><div class="text-center"><h5 class="user-name mb-0 fw-bold" id="dashboard-user-name">Utilisateur</h5><p class="mb-0 text-muted" id="dashboard-user-role"></p></div></a>
+            <hr class="dropdown-divider">
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:;" onclick="logout()"><i class="material-icons-outlined">power_settings_new</i>Deconnexion</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header"><div class="logo-name flex-grow-1"><h5 class="mb-0">EMSP</h5></div><div class="sidebar-close"><span class="material-icons-outlined">close</span></div></div>
+    <div class="sidebar-nav">
+      <ul class="metismenu" id="sidenav">
+        <li><a href="index.html"><div class="parent-icon"><i class="material-icons-outlined">home</i></div><div class="menu-title">Tableau de bord</div></a></li>
+        <li class="menu-label">Scolarite</li>
+        <li data-permission="etudiants" class="mm-active"><a href="etudiants.html"><div class="parent-icon"><i class="material-icons-outlined">people</i></div><div class="menu-title">Etudiants</div></a></li>
+        <li data-permission="promotions"><a href="promotions.html"><div class="parent-icon"><i class="material-icons-outlined">school</i></div><div class="menu-title">Promotions</div></a></li>
+        <li data-permission="notes"><a href="notes.html"><div class="parent-icon"><i class="material-icons-outlined">grading</i></div><div class="menu-title">Notes</div></a></li>
+        <li data-permission="emploi-du-temps"><a href="emploi-du-temps.html"><div class="parent-icon"><i class="material-icons-outlined">calendar_month</i></div><div class="menu-title">Emploi du temps</div></a></li>
+        <li class="menu-label">Gestion</li>
+        <li data-permission="inscriptions"><a href="inscriptions.html"><div class="parent-icon"><i class="material-icons-outlined">assignment</i></div><div class="menu-title">Inscriptions</div></a></li>
+        <li data-permission="formations"><a href="formations.html"><div class="parent-icon"><i class="material-icons-outlined">menu_book</i></div><div class="menu-title">Formations</div></a></li>
+        <li data-permission="comptabilite"><a href="comptabilite.html"><div class="parent-icon"><i class="material-icons-outlined">account_balance</i></div><div class="menu-title">Comptabilite</div></a></li>
+        <li class="menu-label">Contenu</li>
+        <li data-permission="actualites"><a href="actualites.html"><div class="parent-icon"><i class="material-icons-outlined">article</i></div><div class="menu-title">Actualites</div></a></li>
+        <li data-permission="mediatheque"><a href="mediatheque.html"><div class="parent-icon"><i class="material-icons-outlined">perm_media</i></div><div class="menu-title">Mediatheque</div></a></li>
+        <li class="menu-label">Administration</li>
+        <li data-permission="utilisateurs"><a href="utilisateurs.html"><div class="parent-icon"><i class="material-icons-outlined">manage_accounts</i></div><div class="menu-title">Utilisateurs</div></a></li>
+        <li data-permission="configuration"><a href="configuration.html"><div class="parent-icon"><i class="material-icons-outlined">settings</i></div><div class="menu-title">Configuration</div></a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <div class="main-content">
+      <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Administration</div>
+        <div class="ps-3"><ol class="breadcrumb mb-0 p-0"><li class="breadcrumb-item"><a href="index.html"><i class="material-icons-outlined">home</i></a></li><li class="breadcrumb-item active">Etudiants</li></ol></div>
+        <div class="ms-auto"><button class="btn btn-grd-primary" id="btnAddEtudiant"><i class="material-icons-outlined me-1" style="vertical-align:middle;font-size:18px">person_add</i><span id="addButtonLabel">Creer un profil</span></button></div>
+      </div>
+
+      <div id="alert-container"></div>
+      <p class="text-muted" id="pageDescription"></p>
+
+      <div class="row" id="studentMetrics">
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Effectif total</p><h4 id="metricTotal">0</h4><small class="text-muted">etudiants visibles dans la selection</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Actifs</p><h4 id="metricActive">0</h4><small class="text-muted">dossiers disponibles</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Suspendus</p><h4 id="metricInactive">0</h4><small class="text-muted">a regulariser</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="text-muted mb-0">Solde cumule</p><h4 id="metricBalance">0 FCFA</h4><small class="text-muted" id="metricPromotions">0 promotions concernees</small></div></div></div>
+      </div>
+
+      <div class="card rounded-4">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-lg-5"><label class="form-label">Recherche</label><input type="search" class="form-control" id="searchEtudiant" placeholder="Rechercher un nom, email ou matricule"></div>
+            <div class="col-lg-2"><label class="form-label">Statut</label><select class="form-select" id="filterStatus"><option value="">Tous les statuts</option><option value="active">Actifs</option><option value="inactive">Suspendus</option></select></div>
+            <div class="col-lg-2 filter-portal"><label class="form-label">Pays</label><select class="form-select" id="filterCountry"><option value="">Tous les pays</option></select></div>
+            <div class="col-lg-2 filter-portal"><label class="form-label">Filiere</label><select class="form-select" id="filterFormation"><option value="">Toutes les filieres</option></select></div>
+            <div class="col-lg-1"><button class="btn btn-outline-primary w-100" id="btnFilter"><i class="material-icons-outlined" style="vertical-align:middle;font-size:18px">filter_list</i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xxl-9 d-flex">
+          <div class="card rounded-4 w-100">
+            <div class="card-body">
+              <p class="text-uppercase text-primary mb-1">Liste officielle</p>
+              <h5 id="tableTitle">Cohortes et dossiers</h5>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead id="studentsHead"></thead>
+                  <tbody id="etudiantsBody"><tr><td class="text-center text-muted py-4">Chargement...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xxl-3">
+          <div class="card rounded-4"><div class="card-body"><p class="text-uppercase text-primary mb-1">Repartition</p><h5 id="primaryChartTitle">Par pays membres</h5><div id="chartPrimary" style="min-height:260px"></div></div></div>
+          <div class="card rounded-4"><div class="card-body"><p class="text-uppercase text-primary mb-1" id="secondaryEyebrow">Programmes</p><h5 id="secondaryChartTitle">Par filiere</h5><div id="chartSecondary" style="min-height:260px"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="modalEtudiant" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content rounded-4">
+        <div class="modal-header border-bottom-0">
+          <h5 class="modal-title" id="modalEtudiantTitle">Creer un profil etudiant</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="modal-alert-container"></div>
+          <form id="formEtudiant"><div id="studentFormFields"></div></form>
+        </div>
+        <div class="modal-footer border-top-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" form="formEtudiant" class="btn btn-grd-primary" id="btnSaveEtudiant"><span id="saveBtnText">Enregistrer</span><span id="saveSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay btn-toggle"></div>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
+  <script src="assets/plugins/metismenu/metisMenu.min.js"></script>
+  <script src="assets/plugins/apexchart/apexcharts.min.js"></script>
+  <script src="assets/plugins/simplebar/js/simplebar.min.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="js/dashboard-api.js"></script>
+  <script>
+    if (!requireAuth()) {}
+    if (!checkPermission('etudiants')) {}
+    filterSidebarMenu();
+
+    const pageState = readPageState('etudiants-admin', { search: '', status: '', country: '', formation: '' });
+    let studentData = null;
+    let studentOptions = { formations: [], promotions: [], countries: [] };
+    let editingStudent = null;
+    let chartPrimary = null;
+    let chartSecondary = null;
+
+    function isLegacyDataset() {
+      return studentData?.dataset_mode === 'legacy';
+    }
+
+    function buildQuery() {
+      const params = new URLSearchParams();
+      const search = document.getElementById('searchEtudiant').value.trim();
+      const status = document.getElementById('filterStatus').value;
+      const country = document.getElementById('filterCountry').value;
+      const formation = document.getElementById('filterFormation').value;
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      if (country) params.set('country', country);
+      if (formation) params.set('formation', formation);
+      savePageState('etudiants-admin', { search, status, country, formation });
+      return params.toString();
+    }
+
+    function renderMetrics() {
+      const summary = studentData?.summary || {};
+      document.getElementById('metricTotal').textContent = Number(summary.total || 0).toLocaleString('fr-FR');
+      document.getElementById('metricActive').textContent = Number(summary.active || 0).toLocaleString('fr-FR');
+      document.getElementById('metricInactive').textContent = Number(summary.inactive || 0).toLocaleString('fr-FR');
+      document.getElementById('metricBalance').textContent = formatCurrency(summary.outstanding_balance);
+      document.getElementById('metricPromotions').textContent = `${Number(summary.promotions || 0).toLocaleString('fr-FR')} promotions concernees`;
+    }
+
+    function renderFilterOptions() {
+      document.querySelectorAll('.filter-portal').forEach((item) => item.classList.toggle('d-none', isLegacyDataset()));
+      document.getElementById('addButtonLabel').textContent = isLegacyDataset() ? 'Ajouter un etudiant' : 'Creer un profil';
+      document.getElementById('tableTitle').textContent = isLegacyDataset() ? 'Etudiants de la base emsp' : 'Cohortes et dossiers';
+      document.getElementById('pageDescription').textContent = isLegacyDataset()
+        ? 'La liste est alimentee directement par les donnees reelles de la table MySQL etudiant de la base emsp.'
+        : 'Suivi des effectifs, des promotions et des situations administratives.';
+
+      const countries = studentOptions.countries.length
+        ? studentOptions.countries
+        : Array.from(new Map((studentData?.results || []).map((item) => [item.country, { value: item.country, label: item.country_label }])).values());
+      const formations = studentOptions.formations.length
+        ? studentOptions.formations.map((item) => ({ value: item.code, label: `${item.code} - ${item.name}` }))
+        : Array.from(new Map((studentData?.results || []).map((item) => [item.formation_code, { value: item.formation_code, label: `${item.formation_code} - ${item.formation_name}` }])).values());
+
+      const countrySelect = document.getElementById('filterCountry');
+      const formationSelect = document.getElementById('filterFormation');
+      countrySelect.innerHTML = '<option value="">Tous les pays</option>' + countries.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+      formationSelect.innerHTML = '<option value="">Toutes les filieres</option>' + formations.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+      const currentState = readPageState('etudiants-admin', pageState);
+      countrySelect.value = currentState.country;
+      formationSelect.value = currentState.formation;
+    }
+
+    function renderTable() {
+      const rows = studentData?.results || [];
+      const tbody = document.getElementById('etudiantsBody');
+      document.getElementById('studentsHead').innerHTML = isLegacyDataset()
+        ? '<tr><th>Etudiant</th><th>Contact</th><th>Profil</th><th>Hobbies</th><th>Age</th><th>Source</th><th>Statut</th><th>Action</th></tr>'
+        : '<tr><th>Etudiant</th><th>Formation</th><th>Promotion</th><th>Pays</th><th>Rang</th><th>Solde</th><th>Statut</th><th>Action</th></tr>';
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Aucun etudiant ne correspond aux filtres selectionnes.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map((item, index) => {
+        const action = `<button class="btn btn-sm btn-outline-primary" onclick="startEditStudent(${index})"><i class="material-icons-outlined" style="font-size:16px;vertical-align:middle">edit</i> Modifier</button>`;
+        const identity = `
+          <div class="d-flex align-items-center gap-3">
+            ${item.photo_url ? `<img src="${escapeHtml(item.photo_url)}" class="rounded-4 object-fit-cover" width="44" height="44" alt="">` : `<div class="rounded-4 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width:44px;height:44px">${escapeHtml((item.full_name || '?').charAt(0))}</div>`}
+            <div><div class="fw-semibold">${escapeHtml(item.full_name)}</div><small class="text-muted">${escapeHtml(item.matricule)}</small>${item.enrolled_at ? `<br><small class="text-muted">Inscrit le ${formatDateShort(item.enrolled_at)}</small>` : ''}</div>
+          </div>`;
+        if (isLegacyDataset()) {
+          return `<tr><td>${identity}</td><td><div class="fw-semibold">${escapeHtml(item.phone || 'Non renseigne')}</div><small class="text-muted">Contact issu de la base emsp</small></td><td><div class="fw-semibold">${escapeHtml(item.gender_label || 'Non renseigne')}</div><small class="text-muted">${typeof item.age === 'number' ? `${item.age} ans` : 'Age non renseigne'}</small></td><td>${escapeHtml(item.hobbies || 'Non renseignes')}</td><td>${typeof item.age === 'number' ? `${item.age} ans` : 'N/A'}</td><td class="fw-semibold">Table etudiant (EMSP)</td><td>${getAdminStatusBadge(item.is_active ? 'active' : 'inactive', item.status_label)}</td><td>${action}</td></tr>`;
+        }
+        return `<tr><td>${identity}</td><td><div class="fw-semibold">${escapeHtml(item.formation_code)}</div><small class="text-muted">${escapeHtml(item.formation_name)}</small></td><td>${escapeHtml(item.promotion_label || 'Non affecte')}<br><small class="text-muted">${escapeHtml(item.academic_year || 'Sans annee')}</small></td><td>${escapeHtml(item.country_label)}</td><td>#${Number(item.rank || 0)}</td><td class="fw-semibold">${escapeHtml(item.balance_label)}</td><td>${getAdminStatusBadge(item.is_active ? 'active' : 'inactive', item.status_label)}</td><td>${action}</td></tr>`;
+      }).join('');
+    }
+
+    function countBy(items, getKey, getLabel) {
+      const map = new Map();
+      items.forEach((item) => {
+        const key = getKey(item) || 'N/A';
+        const label = getLabel(item) || key;
+        const current = map.get(key) || { label, value: 0 };
+        current.value += 1;
+        map.set(key, current);
+      });
+      return Array.from(map.values()).sort((a, b) => b.value - a.value);
+    }
+
+    function renderCharts() {
+      const rows = studentData?.results || [];
+      const primary = isLegacyDataset()
+        ? countBy(rows, (item) => item.gender_label, (item) => item.gender_label || 'Non renseigne')
+        : countBy(rows, (item) => item.country, (item) => item.country_label);
+      const secondary = isLegacyDataset()
+        ? countBy(rows, (item) => {
+            if (typeof item.age !== 'number') return 'Non renseigne';
+            if (item.age <= 18) return '18 ans et moins';
+            if (item.age <= 21) return '19 - 21 ans';
+            if (item.age <= 24) return '22 - 24 ans';
+            return '25 ans et plus';
+          }, (item) => {
+            if (typeof item.age !== 'number') return 'Non renseigne';
+            if (item.age <= 18) return '18 ans et moins';
+            if (item.age <= 21) return '19 - 21 ans';
+            if (item.age <= 24) return '22 - 24 ans';
+            return '25 ans et plus';
+          })
+        : countBy(rows, (item) => item.formation_code, (item) => item.formation_code);
+
+      document.getElementById('primaryChartTitle').textContent = isLegacyDataset() ? 'Par sexe' : 'Par pays membres';
+      document.getElementById('secondaryEyebrow').textContent = isLegacyDataset() ? 'Profils' : 'Programmes';
+      document.getElementById('secondaryChartTitle').textContent = isLegacyDataset() ? "Tranches d'age" : 'Par filiere';
+      if (chartPrimary) chartPrimary.destroy();
+      if (chartSecondary) chartSecondary.destroy();
+      chartPrimary = new ApexCharts(document.querySelector('#chartPrimary'), { chart: { type: 'bar', height: 260, toolbar: { show: false } }, plotOptions: { bar: { horizontal: true, borderRadius: 6 } }, series: [{ name: 'Etudiants', data: primary.map((item) => item.value) }], xaxis: { categories: primary.map((item) => item.label) }, dataLabels: { enabled: false } });
+      chartSecondary = new ApexCharts(document.querySelector('#chartSecondary'), { chart: { type: 'bar', height: 260, toolbar: { show: false } }, plotOptions: { bar: { horizontal: true, borderRadius: 6 } }, series: [{ name: 'Etudiants', data: secondary.map((item) => item.value) }], xaxis: { categories: secondary.map((item) => item.label) }, dataLabels: { enabled: false }, colors: ['#1E293B'] });
+      chartPrimary.render();
+      chartSecondary.render();
+    }
+
+    async function loadEtudiants() {
+      const query = buildQuery();
+      const tbody = document.getElementById('etudiantsBody');
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Chargement...</td></tr>';
+      try {
+        studentData = await apiCall(`scolarite/admin/etudiants/${query ? `?${query}` : ''}`);
+        renderMetrics();
+        renderFilterOptions();
+        renderTable();
+        renderCharts();
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Erreur de chargement</td></tr>';
+        showAlert(parseApiError(error, 'Erreur lors du chargement des etudiants'));
+      }
+    }
+
+    function renderStudentForm(student = null) {
+      const legacy = isLegacyDataset();
+      document.getElementById('modalEtudiantTitle').textContent = student ? "Modifier l'etudiant" : (legacy ? 'Ajouter un etudiant' : 'Creer un profil etudiant');
+      if (legacy) {
+        document.getElementById('studentFormFields').innerHTML = `
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Matricule</label><input class="form-control" id="formMatricule" required value="${escapeHtml(student?.matricule || '')}"></div>
+            <div class="col-md-6"><label class="form-label">Sexe</label><select class="form-select" id="formGender"><option value="">Non renseigne</option><option value="M">Masculin</option><option value="F">Feminin</option></select></div>
+            <div class="col-12"><label class="form-label">Nom complet</label><input class="form-control" id="formFullName" required value="${escapeHtml(student?.full_name || '')}"></div>
+            <div class="col-md-6"><label class="form-label">Age</label><input type="number" min="0" class="form-control" id="formAge" value="${student?.age ?? ''}"></div>
+            <div class="col-md-6"><label class="form-label">Contact</label><input class="form-control" id="formPhone" value="${escapeHtml(student?.phone || '')}"></div>
+            <div class="col-12"><label class="form-label">Hobbies</label><textarea class="form-control" id="formHobbies" rows="3">${escapeHtml(student?.hobbies || '')}</textarea></div>
+          </div>`;
+        document.getElementById('formGender').value = student?.gender || '';
+        return;
+      }
+
+      const formationOptions = studentOptions.formations.map((item) => `<option value="${item.id}">${escapeHtml(item.code)} - ${escapeHtml(item.name)}</option>`).join('');
+      const promotionOptions = studentOptions.promotions.map((item) => `<option value="${item.id}">${escapeHtml(item.label)} - ${escapeHtml(item.academic_year)}</option>`).join('');
+      const countryOptions = studentOptions.countries.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+      document.getElementById('studentFormFields').innerHTML = `
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Prenom</label><input class="form-control" id="formFirstName" required value="${escapeHtml(student?.first_name || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Nom</label><input class="form-control" id="formLastName" required value="${escapeHtml(student?.last_name || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" id="formEmail" required value="${escapeHtml(student?.email || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Telephone</label><input class="form-control" id="formPhone" value="${escapeHtml(student?.phone || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Matricule</label><input class="form-control" id="formMatricule" required value="${escapeHtml(student?.matricule || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Pays</label><select class="form-select" id="formCountry">${countryOptions}</select></div>
+          <div class="col-md-6"><label class="form-label">Filiere</label><select class="form-select" id="formFormation" required><option value="0">Selectionner</option>${formationOptions}</select></div>
+          <div class="col-md-6"><label class="form-label">Promotion</label><select class="form-select" id="formPromotion"><option value="">Aucune</option>${promotionOptions}</select></div>
+          <div class="col-md-6"><label class="form-label">Date de naissance</label><input type="date" class="form-control" id="formBirthDate" value="${escapeHtml(student?.date_naissance || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Lieu de naissance</label><input class="form-control" id="formBirthPlace" value="${escapeHtml(student?.lieu_naissance || '')}"></div>
+          <div class="col-md-6"><label class="form-label">Rang</label><input type="number" min="1" class="form-control" id="formRank" value="${Number(student?.rank || 1)}"></div>
+          <div class="col-md-6"><label class="form-label">Solde scolarite</label><input type="number" min="0" class="form-control" id="formBalance" value="${Number(student?.balance || 0)}"></div>
+          <div class="col-12"><label class="form-label">Mot de passe initial</label><input class="form-control" id="formPassword" value="${student ? '' : 'emsp12345'}" placeholder="${student ? "Laisser vide pour conserver l'actuel" : 'emsp12345'}"></div>
+          <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="formIsActive"><label class="form-check-label" for="formIsActive">Etudiant actif dans le portail</label></div></div>
+        </div>`;
+      document.getElementById('formCountry').value = student?.country || 'CI';
+      document.getElementById('formFormation').value = student?.formation_id || 0;
+      document.getElementById('formPromotion').value = student?.promotion_id || '';
+      document.getElementById('formIsActive').checked = student?.is_active !== false;
+    }
+
+    function startEditStudent(index) {
+      editingStudent = (studentData?.results || [])[index] || null;
+      renderStudentForm(editingStudent);
+      new bootstrap.Modal(document.getElementById('modalEtudiant')).show();
+    }
+
+    window.startEditStudent = startEditStudent;
+
+    document.getElementById('btnAddEtudiant').addEventListener('click', () => {
+      editingStudent = null;
+      renderStudentForm(null);
+      document.getElementById('modal-alert-container').innerHTML = '';
+      new bootstrap.Modal(document.getElementById('modalEtudiant')).show();
+    });
+
+    document.getElementById('formEtudiant').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const legacy = isLegacyDataset();
+      const payload = legacy ? {
+        matricule: document.getElementById('formMatricule').value.trim().toUpperCase(),
+        full_name: document.getElementById('formFullName').value.trim(),
+        gender: document.getElementById('formGender').value,
+        age: document.getElementById('formAge').value ? Number(document.getElementById('formAge').value) : null,
+        phone: document.getElementById('formPhone').value.trim(),
+        hobbies: document.getElementById('formHobbies').value.trim(),
+      } : {
+        first_name: document.getElementById('formFirstName').value.trim(),
+        last_name: document.getElementById('formLastName').value.trim(),
+        email: document.getElementById('formEmail').value.trim(),
+        phone: document.getElementById('formPhone').value.trim(),
+        matricule: document.getElementById('formMatricule').value.trim().toUpperCase(),
+        formation_id: Number(document.getElementById('formFormation').value),
+        promotion_id: document.getElementById('formPromotion').value ? Number(document.getElementById('formPromotion').value) : null,
+        pays: document.getElementById('formCountry').value,
+        date_naissance: document.getElementById('formBirthDate').value || null,
+        lieu_naissance: document.getElementById('formBirthPlace').value.trim(),
+        rang_promotion: Number(document.getElementById('formRank').value) || 1,
+        solde_scolarite: Number(document.getElementById('formBalance').value) || 0,
+        is_active: document.getElementById('formIsActive').checked,
+        password: document.getElementById('formPassword').value.trim(),
+      };
+
+      setLoadingButton('btnSaveEtudiant', 'saveBtnText', 'saveSpinner', true, 'Enregistrement...');
+      document.getElementById('modal-alert-container').innerHTML = '';
+      try {
+        if (editingStudent) {
+          const endpoint = legacy
+            ? `scolarite/admin/etudiants/legacy/${encodeURIComponent(editingStudent.matricule)}/`
+            : `scolarite/admin/etudiants/${editingStudent.id}/`;
+          await apiCall(endpoint, { method: 'PATCH', body: JSON.stringify(payload) });
+          showAlert("Les informations de l'etudiant ont ete mises a jour.", 'success');
+        } else {
+          const response = await apiCall('scolarite/admin/etudiants/', { method: 'POST', body: JSON.stringify(payload) });
+          const passwordNote = response?.initial_password ? ` Mot de passe initial : ${response.initial_password}.` : '';
+          showAlert(legacy ? 'Le nouvel etudiant legacy a ete ajoute.' : `Le nouvel etudiant a ete ajoute.${passwordNote}`, 'success');
+        }
+        bootstrap.Modal.getInstance(document.getElementById('modalEtudiant')).hide();
+        await loadEtudiants();
+      } catch (error) {
+        showAlert(parseApiError(error, "Impossible d'enregistrer cet etudiant."), 'danger', document.getElementById('modal-alert-container'));
+      } finally {
+        setLoadingButton('btnSaveEtudiant', 'saveBtnText', 'saveSpinner', false);
+      }
+    });
+
+    document.getElementById('btnFilter').addEventListener('click', loadEtudiants);
+    document.getElementById('searchEtudiant').addEventListener('keydown', (event) => { if (event.key === 'Enter') loadEtudiants(); });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('searchEtudiant').value = pageState.search;
+      document.getElementById('filterStatus').value = pageState.status;
+      try {
+        studentOptions = await apiCall('scolarite/admin/etudiants/options/');
+      } catch (_error) {
+        studentOptions = { formations: [], promotions: [], countries: [] };
+      }
+      renderFilterOptions();
+      await loadEtudiants();
+    });
+  </script>
+</body>
+</html>

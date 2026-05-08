@@ -5,6 +5,8 @@ import { Link, NavLink } from "react-router-dom";
 
 import MegaMenu from "./MegaMenu";
 import { navigationConfig } from "../../config/navigation";
+import { limitedAdminRoles, staticAdminDashboardPath } from "../../config/adminPortal";
+import { useAuth } from "../../hooks/useAuth";
 import { useSiteConfig } from "../../hooks/useSiteConfig";
 
 const Navbar = () => {
@@ -13,6 +15,14 @@ const Navbar = () => {
   const [formationsOpen, setFormationsOpen] = useState(false);
   const [desktopMegaOpen, setDesktopMegaOpen] = useState(false);
   const { data: site } = useSiteConfig();
+  const { user, isAuthenticated } = useAuth();
+
+  const portalHref = !isAuthenticated ? "/login" : user?.role === "etudiant" ? "/etudiant/dashboard" : staticAdminDashboardPath;
+  const adminHref = !isAuthenticated
+    ? "/login"
+    : limitedAdminRoles.includes((user?.role || "etudiant") as (typeof limitedAdminRoles)[number])
+      ? staticAdminDashboardPath
+      : "/etudiant/dashboard";
 
   useEffect(() => {
     const onScroll = () => setIsSticky(window.scrollY > 80);
@@ -74,13 +84,13 @@ const Navbar = () => {
 
         <div className="hidden items-center gap-2 lg:flex">
           <a
-            href="/login"
+            href={portalHref}
             className="rounded-md bg-secondary px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600"
           >
             Espace Etudiant
           </a>
           <a
-            href="/login"
+            href={adminHref}
             className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-dark transition hover:bg-amber-400"
           >
             Administration
@@ -173,14 +183,14 @@ const Navbar = () => {
 
               <div className="mt-6 space-y-2">
                 <a
-                  href="/login"
+                  href={portalHref}
                   className="block rounded-md bg-white px-4 py-2 text-center text-sm font-semibold text-secondary"
                   onClick={() => setMobileOpen(false)}
                 >
                   Espace Etudiant
                 </a>
                 <a
-                  href="/login"
+                  href={adminHref}
                   className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-semibold text-dark"
                   onClick={() => setMobileOpen(false)}
                 >

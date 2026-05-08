@@ -98,7 +98,7 @@ const AdminSettingsPage = () => {
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Identite</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-dark">Logo et marque</h2>
 
@@ -108,7 +108,7 @@ const AdminSettingsPage = () => {
                 <input
                   value={form.siteName}
                   onChange={(event) => handleChange("siteName", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 />
               </label>
               <label className="block">
@@ -116,7 +116,7 @@ const AdminSettingsPage = () => {
                 <input
                   value={form.slogan}
                   onChange={(event) => handleChange("slogan", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 />
               </label>
             </div>
@@ -126,7 +126,7 @@ const AdminSettingsPage = () => {
               <input
                 value={form.logoAlt}
                 onChange={(event) => handleChange("logoAlt", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
             </label>
 
@@ -176,7 +176,7 @@ const AdminSettingsPage = () => {
                 rows={5}
                 value={form.aboutText}
                 onChange={(event) => handleChange("aboutText", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
             </label>
 
@@ -186,12 +186,12 @@ const AdminSettingsPage = () => {
                 rows={4}
                 value={form.footerText}
                 onChange={(event) => handleChange("footerText", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
             </label>
           </SurfaceCard>
 
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Apercu</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-dark">Bande rouge et diffusion</h2>
 
@@ -214,7 +214,7 @@ const AdminSettingsPage = () => {
                 rows={4}
                 value={form.homepageBannerText}
                 onChange={(event) => handleChange("homepageBannerText", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
               />
             </label>
 
@@ -235,13 +235,13 @@ const AdminSettingsPage = () => {
                       value={form.phone1}
                       onChange={(event) => handleChange("phone1", event.target.value)}
                       placeholder="Telephone principal"
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                      className="emsp-panel w-full rounded-2xl bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
                     />
                     <input
                       value={form.phone2}
                       onChange={(event) => handleChange("phone2", event.target.value)}
                       placeholder="Telephone secondaire"
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                      className="emsp-panel w-full rounded-2xl bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
                     />
                   </div>
                 </div>
@@ -256,13 +256,13 @@ const AdminSettingsPage = () => {
                       value={form.emailContact}
                       onChange={(event) => handleChange("emailContact", event.target.value)}
                       placeholder="Email principal"
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                      className="emsp-panel w-full rounded-2xl bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
                     />
                     <input
                       value={form.emailInfo}
                       onChange={(event) => handleChange("emailInfo", event.target.value)}
                       placeholder="Email secondaire"
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                      className="emsp-panel w-full rounded-2xl bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
                     />
                   </div>
                 </div>
@@ -276,7 +276,7 @@ const AdminSettingsPage = () => {
                     rows={4}
                     value={form.address}
                     onChange={(event) => handleChange("address", event.target.value)}
-                    className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                    className="emsp-panel mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm outline-none transition focus:border-secondary"
                   />
                 </div>
               </div>
@@ -285,7 +285,7 @@ const AdminSettingsPage = () => {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Reseaux</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-dark">Liens publics</h2>
             <div className="mt-6 grid gap-4">
@@ -294,7 +294,7 @@ const AdminSettingsPage = () => {
                 <input
                   value={form.facebookUrl}
                   onChange={(event) => handleChange("facebookUrl", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 />
               </label>
               <label className="block">
@@ -302,7 +302,7 @@ const AdminSettingsPage = () => {
                 <input
                   value={form.twitterUrl}
                   onChange={(event) => handleChange("twitterUrl", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 />
               </label>
               <label className="block">
@@ -310,7 +310,7 @@ const AdminSettingsPage = () => {
                 <input
                   value={form.linkedinUrl}
                   onChange={(event) => handleChange("linkedinUrl", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 />
               </label>
               <label className="block">
@@ -318,13 +318,13 @@ const AdminSettingsPage = () => {
                 <input
                   value={form.youtubeUrl}
                   onChange={(event) => handleChange("youtubeUrl", event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-secondary"
+                  className="emsp-panel w-full rounded-2xl px-4 py-3 text-sm outline-none transition focus:border-secondary"
                 />
               </label>
             </div>
           </SurfaceCard>
 
-          <SurfaceCard className="p-6">
+          <SurfaceCard className="emsp-panel p-6">
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Enregistrement</p>
             <h2 className="mt-2 font-display text-2xl font-bold text-dark">Publier les changements</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600">

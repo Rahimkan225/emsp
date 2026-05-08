@@ -7,27 +7,42 @@ interface FormationVisualFallbackProps {
 
 const paletteByProgram: Record<Formation["programType"], { wrapper: string; badge: string }> = {
   FSP: {
-    wrapper: "bg-[linear-gradient(145deg,#065F46_0%,#16A34A_55%,#22C55E_100%)] text-white",
+    wrapper: "text-white",
     badge: "bg-white/20 text-white",
   },
   "FS-MENUM": {
-    wrapper: "bg-[linear-gradient(145deg,#0F172A_0%,#1E293B_48%,#22C55E_100%)] text-white",
+    wrapper: "text-white",
     badge: "bg-primary text-dark",
   },
   FCQ: {
-    wrapper: "bg-[linear-gradient(145deg,#7C2D12_0%,#B45309_55%,#F59E0B_100%)] text-white",
+    wrapper: "text-white",
     badge: "bg-white/20 text-white",
   },
 };
 
+const formationFallbackImages = [
+  "/media/imageemsp/IMG-20250705-WA0133.jpg",
+  "/media/imageemsp/Photo%20de%20Al%C3%A8ve(11).jpg",
+  "/media/imageemsp/IMG-20251206-WA0229(1).jpg",
+  "/media/imageemsp/IMG-20250605-WA0018.jpg",
+  "/media/imageemsp/Photo%20de%20Al%C3%A8ve(4).jpg",
+  "/media/imageemsp/Photo%20de%20Al%C3%A8ve(9).jpg",
+];
+
+const getFallbackImage = (code: string) => {
+  const total = code.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return formationFallbackImages[total % formationFallbackImages.length];
+};
+
 const FormationVisualFallback = ({ formation, className = "" }: FormationVisualFallbackProps) => {
   const palette = paletteByProgram[formation.programType];
+  const imageUrl = getFallbackImage(formation.code);
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${palette.wrapper} ${className}`}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.28),transparent_45%)]" />
-      <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full border border-white/15" />
-      <div className="absolute -left-8 top-4 h-24 w-24 rounded-full border border-white/10" />
+      <img src={imageUrl} alt={`Vie academique EMSP - ${formation.name}`} className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/80 via-emerald-800/60 to-slate-950/35" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_45%)]" />
       <div className="relative flex h-full flex-col justify-between p-5">
         <div className="flex items-start justify-between gap-3">
           <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${palette.badge}`}>

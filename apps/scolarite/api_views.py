@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -19,13 +20,36 @@ from apps.formations.models import Filiere
 from apps.inscriptions.models import Candidature
 
 from .demo import ensure_portal_demo_data
-from .models import EmploiDuTempsItem, Etudiant, ForumPost, Note, Promotion, StudentDocument
+from .models import (
+    EmploiDuTempsItem,
+    Enseignant,
+    Etudiant,
+    ForumPost,
+    Note,
+    Promotion,
+    StudentDocument,
+    TransportCar,
+    TransportCommune,
+    TransportDepot,
+    TransportDriver,
+    TransportPayment,
+    TransportRoute,
+    TransportTrip,
+)
 from .serializers import (
     EmploiDuTempsSerializer,
+    EnseignantSerializer,
     EtudiantSerializer,
     ForumPostSerializer,
     NoteSerializer,
     StudentDocumentSerializer,
+    TransportCarSerializer,
+    TransportCommuneSerializer,
+    TransportDepotSerializer,
+    TransportDriverSerializer,
+    TransportPaymentSerializer,
+    TransportRouteSerializer,
+    TransportTripSerializer,
 )
 
 User = get_user_model()
@@ -35,6 +59,187 @@ class ForumCreateSerializer(serializers.Serializer):
     category = serializers.ChoiceField(choices=[choice[0] for choice in ForumPost.CATEGORY_CHOICES])
     title = serializers.CharField(max_length=200)
     content = serializers.CharField()
+
+
+def _paginated_payload(request, queryset, serializer):
+    try:
+        page = max(1, int(request.query_params.get("page", 1)))
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        page_size = max(1, min(200, int(request.query_params.get("page_size", 50))))
+    except (TypeError, ValueError):
+        page_size = 50
+
+    total = queryset.count()
+    start = (page - 1) * page_size
+    end = start + page_size
+    return {
+        "count": total,
+        "results": serializer(queryset[start:end], many=True).data,
+    }
+
+
+def _parse_academic_year(value):
+    raw = str(value or "").strip()
+    if not raw:
+        raise serializers.ValidationError("Annee academique obligatoire.")
+    normalized = raw.replace("/", "-").replace(" ", "")
+    parts = normalized.split("-")
+    if len(parts) != 2:
+        raise serializers.ValidationError("Format attendu: 2025-2026.")
+    try:
+        year_start = int(parts[0])
+        year_end = int(parts[1])
+    except ValueError as exc:
+        raise serializers.ValidationError("L'annee academique doit contenir deux annees.") from exc
+    if year_end != year_start + 1:
+        raise serializers.ValidationError("L'annee de fin doit suivre l'annee de debut.")
+    return year_start, year_end
+
+
+class DashboardPromotionSerializer(serializers.ModelSerializer):
+    nom = serializers.CharField(source="label", read_only=True)
+    formation = serializers.IntegerField(source="formation_id", read_only=True)
+    formation_nom = serializers.CharField(source="formation.nom", read_only=True)
+    annee_academique = serializers.CharField(source="academic_year", read_only=True)
+    etudiants_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = Promotion
+        fields = [
+            "id",
+            "nom",
+            "label",
+            "formation",
+            "formation_nom",
+            "year_start",
+            "year_end",
+            "annee_academique",
+            "academic_year",
+            "etudiants_count",
+        ]
+
+
+class DashboardPromotionWriteSerializer(serializers.Serializer):
+    nom = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    label = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    formation = serializers.CharField()
+    annee_academique = serializers.CharField(required=False, allow_blank=True)
+    year_start = serializers.IntegerField(required=False)
+    year_end = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        label = " ".join((attrs.get("nom") or attrs.get("label") or "").split())
+        if not label:
+            raise serializers.ValidationError({"nom": "Nom obligatoire."})
+
+        formation_ref = str(attrs.get("formation") or "").strip()
+        formation = None
+        if formation_ref.isdigit():
+            formation = Filiere.objects.filter(pk=int(formation_ref)).first()
+        if formation is None and formation_ref:
+            formation = Filiere.objects.filter(code__iexact=formation_ref).first()
+        if formation is None:
+            raise serializers.ValidationError({"formation": "Formation introuvable."})
+
+        if attrs.get("year_start") and attrs.get("year_end"):
+            year_start = attrs["year_start"]
+            year_end = attrs["year_end"]
+            if year_end != year_start + 1:
+                raise serializers.ValidationError({"annee_academique": "L'annee de fin doit suivre l'annee de debut."})
+        else:
+            year_start, year_end = _parse_academic_year(attrs.get("annee_academique"))
+
+        attrs["label"] = label
+        attrs["formation_obj"] = formation
+        attrs["year_start"] = year_start
+        attrs["year_end"] = year_end
+        return attrs
+
+
+DAY_INDEX = {
+    "lundi": 0,
+    "mardi": 1,
+    "mercredi": 2,
+    "jeudi": 3,
+    "vendredi": 4,
+    "samedi": 5,
+    "dimanche": 6,
+}
+
+
+def _date_for_day(day_name):
+    target = DAY_INDEX.get(str(day_name or "").strip().lower(), 0)
+    today = timezone.localdate()
+    monday = today - timedelta(days=today.weekday())
+    return monday + timedelta(days=target)
+
+
+class DashboardEmploiDuTempsSerializer(serializers.ModelSerializer):
+    jour = serializers.SerializerMethodField()
+    heure_debut = serializers.SerializerMethodField()
+    heure_fin = serializers.SerializerMethodField()
+    promotion = serializers.IntegerField(source="promotion_id", read_only=True)
+    promotion_nom = serializers.CharField(source="promotion.label", read_only=True)
+    matiere_nom = serializers.CharField(source="matiere", read_only=True)
+
+    class Meta:
+        model = EmploiDuTempsItem
+        fields = [
+            "id",
+            "jour",
+            "heure_debut",
+            "heure_fin",
+            "matiere",
+            "matiere_nom",
+            "enseignant",
+            "salle",
+            "type",
+            "promotion",
+            "promotion_nom",
+            "debut",
+            "fin",
+        ]
+
+    def get_jour(self, obj):
+        return ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"][timezone.localtime(obj.debut).weekday()]
+
+    def get_heure_debut(self, obj):
+        return timezone.localtime(obj.debut).strftime("%H:%M")
+
+    def get_heure_fin(self, obj):
+        return timezone.localtime(obj.fin).strftime("%H:%M")
+
+
+class DashboardEmploiDuTempsWriteSerializer(serializers.Serializer):
+    jour = serializers.CharField(required=False, allow_blank=True)
+    heure_debut = serializers.TimeField(input_formats=["%H:%M", "%H:%M:%S"], required=False)
+    heure_fin = serializers.TimeField(input_formats=["%H:%M", "%H:%M:%S"], required=False)
+    matiere = serializers.CharField(max_length=200)
+    enseignant = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    salle = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    type = serializers.ChoiceField(choices=[choice[0] for choice in EmploiDuTempsItem.TYPE_CHOICES], required=False)
+    promotion = serializers.IntegerField()
+
+    def validate(self, attrs):
+        promotion = Promotion.objects.filter(pk=attrs["promotion"]).first()
+        if promotion is None:
+            raise serializers.ValidationError({"promotion": "Promotion introuvable."})
+
+        start = attrs.get("heure_debut")
+        end = attrs.get("heure_fin")
+        if start is None or end is None:
+            raise serializers.ValidationError({"heure_debut": "Heure debut et heure fin obligatoires."})
+        if end <= start:
+            raise serializers.ValidationError({"heure_fin": "L'heure de fin doit etre apres l'heure de debut."})
+
+        course_date = _date_for_day(attrs.get("jour"))
+        attrs["promotion_obj"] = promotion
+        attrs["debut"] = timezone.make_aware(datetime.combine(course_date, start))
+        attrs["fin"] = timezone.make_aware(datetime.combine(course_date, end))
+        attrs["type"] = attrs.get("type") or "cours"
+        return attrs
 
 
 class LegacyStudentWriteSerializer(serializers.Serializer):
@@ -140,6 +345,10 @@ def _weighted_average(notes):
 
 def _format_currency(value):
     return f"{value:,.0f} FCFA".replace(",", " ")
+
+
+def _sum_decimal(queryset, field):
+    return queryset.aggregate(total=Sum(field))["total"] or Decimal("0.00")
 
 
 def _media_url(request, media_item):
@@ -515,6 +724,317 @@ class AdminStudentOptionsApiView(APIView):
         return Response(_student_form_options_payload())
 
 
+class MeTransportOverviewApiView(APIView):
+    permission_classes = [IsAuthenticated, IsStudent]
+
+    def get(self, request):
+        ensure_portal_demo_data()
+        student = _student_for_user(request.user)
+        cars = TransportCar.objects.filter(is_active=True).order_by("label")
+        communes = TransportCommune.objects.filter(is_active=True).order_by("label")
+        payments = TransportPayment.objects.select_related("car").filter(etudiant=student)
+        annual_total = _sum_decimal(payments.filter(year=timezone.localdate().year), "tarif")
+        return Response(
+            {
+                "cars": TransportCarSerializer(cars, many=True).data,
+                "communes": TransportCommuneSerializer(communes, many=True).data,
+                "payments": TransportPaymentSerializer(payments, many=True).data,
+                "annual_total": float(annual_total),
+            }
+        )
+
+
+class MeTransportCarWriteSerializer(serializers.Serializer):
+    label = serializers.CharField(max_length=120)
+    places = serializers.IntegerField(required=False, min_value=0, default=0)
+    description = serializers.CharField(max_length=255, required=False, allow_blank=True)
+
+    def validate_label(self, value):
+        cleaned = " ".join((value or "").split())
+        if not cleaned:
+            raise serializers.ValidationError("Libelle obligatoire.")
+        return cleaned
+
+
+class MeTransportCarsApiView(APIView):
+    permission_classes = [IsAuthenticated, IsStudent]
+
+    def get(self, request):
+        cars = TransportCar.objects.all().order_by("label")
+        return Response(TransportCarSerializer(cars, many=True).data)
+
+    def post(self, request):
+        serializer = MeTransportCarWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        car = TransportCar.objects.create(**serializer.validated_data)
+        return Response(TransportCarSerializer(car).data, status=status.HTTP_201_CREATED)
+
+
+class MeTransportCarDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsStudent]
+
+    def delete(self, request, pk):
+        car = TransportCar.objects.filter(pk=pk).first()
+        if car is None:
+            raise NotFound("Car introuvable.")
+        car.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MeTransportPaymentWriteSerializer(serializers.Serializer):
+    car_id = serializers.IntegerField(required=False, allow_null=True)
+    commune_id = serializers.IntegerField(required=False, allow_null=True)
+    tarif = serializers.DecimalField(max_digits=12, decimal_places=2)
+    month = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    year = serializers.IntegerField(required=False, min_value=2000, max_value=2200)
+    operateur = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=30, required=False, allow_blank=True)
+    expires_at = serializers.DateField(required=False, allow_null=True)
+    reference = serializers.CharField(max_length=60, required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        car = None
+        car_id = attrs.get("car_id")
+        if car_id:
+            car = TransportCar.objects.filter(pk=car_id).first()
+            if car is None:
+                raise serializers.ValidationError({"car_id": "Car introuvable."})
+        if car is None:
+            car = TransportCar.objects.filter(is_active=True).first()
+        if car is None:
+            raise serializers.ValidationError({"car_id": "Aucun car actif n'est configure."})
+
+        commune = None
+        commune_id = attrs.get("commune_id")
+        if commune_id:
+            commune = TransportCommune.objects.filter(pk=commune_id).first()
+            if commune is None:
+                raise serializers.ValidationError({"commune_id": "Commune introuvable."})
+
+        attrs["car"] = car
+        attrs["commune"] = commune
+        attrs["month"] = attrs.get("month") or timezone.localdate().month
+        attrs["year"] = attrs.get("year") or timezone.localdate().year
+        return attrs
+
+
+class MeTransportPaymentsApiView(APIView):
+    permission_classes = [IsAuthenticated, IsStudent]
+
+    def post(self, request):
+        ensure_portal_demo_data()
+        student = _student_for_user(request.user)
+        serializer = MeTransportPaymentWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+        payment = TransportPayment.objects.create(
+            etudiant=student,
+            car=payload["car"],
+            commune=payload.get("commune"),
+            tarif=payload["tarif"],
+            month=payload["month"],
+            year=payload["year"],
+            operateur=payload.get("operateur", ""),
+            phone_number=payload.get("phone", ""),
+            expires_at=payload.get("expires_at"),
+            reference=payload.get("reference", "") or f"TR-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+        )
+        return Response(TransportPaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
+
+
+class AdminTransportOverviewApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        current_year = timezone.localdate().year
+        payments = TransportPayment.objects.select_related("etudiant__user", "car", "commune")
+        paid_month = payments.filter(year=current_year, month=timezone.localdate().month)
+        return Response(
+            {
+                "summary": {
+                    "cars": TransportCar.objects.count(),
+                    "communes": TransportCommune.objects.count(),
+                    "routes": TransportRoute.objects.count(),
+                    "drivers": TransportDriver.objects.filter(is_active=True).count(),
+                    "paid_this_month": float(_sum_decimal(paid_month, "tarif")),
+                    "paid_this_year": float(_sum_decimal(payments.filter(year=current_year), "tarif")),
+                },
+                "depots": TransportDepotSerializer(TransportDepot.objects.all(), many=True).data,
+                "communes": TransportCommuneSerializer(TransportCommune.objects.all(), many=True).data,
+                "routes": TransportRouteSerializer(TransportRoute.objects.select_related("origin"), many=True).data,
+                "cars": TransportCarSerializer(
+                    TransportCar.objects.select_related("depot", "route").all(),
+                    many=True,
+                ).data,
+                "drivers": TransportDriverSerializer(
+                    TransportDriver.objects.select_related("user", "car").all(),
+                    many=True,
+                ).data,
+                "trips": TransportTripSerializer(
+                    TransportTrip.objects.select_related("driver__user", "car", "route")[:30],
+                    many=True,
+                ).data,
+                "payments": TransportPaymentSerializer(payments.order_by("-paid_at")[:100], many=True).data,
+            }
+        )
+
+
+class AdminTransportSimpleModelApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+    model = None
+    serializer_class = None
+    create_fields = []
+
+    def get_queryset(self):
+        queryset = self.model.objects.all()
+        if self.model is TransportRoute:
+            queryset = queryset.select_related("origin")
+        if self.model is TransportCar:
+            queryset = queryset.select_related("depot", "route")
+        if self.model is TransportDriver:
+            queryset = queryset.select_related("user", "car")
+        return queryset
+
+    def get(self, request):
+        return Response(self.serializer_class(self.get_queryset(), many=True).data)
+
+    def post(self, request):
+        payload = {field: request.data.get(field) for field in self.create_fields if field in request.data}
+        obj = self.model.objects.create(**payload)
+        return Response(self.serializer_class(obj).data, status=status.HTTP_201_CREATED)
+
+
+class AdminTransportDepotApiView(AdminTransportSimpleModelApiView):
+    model = TransportDepot
+    serializer_class = TransportDepotSerializer
+    create_fields = ["label", "commune", "address", "manager_phone", "is_active"]
+
+
+class AdminTransportCommuneApiView(AdminTransportSimpleModelApiView):
+    model = TransportCommune
+    serializer_class = TransportCommuneSerializer
+    create_fields = ["label", "pickup_point", "monthly_fee", "is_active"]
+
+
+class AdminTransportRouteApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        return Response(TransportRouteSerializer(TransportRoute.objects.select_related("origin"), many=True).data)
+
+    def post(self, request):
+        origin = TransportCommune.objects.filter(pk=request.data.get("origin")).first()
+        if origin is None:
+            raise serializers.ValidationError({"origin": "Commune de depart introuvable."})
+        route = TransportRoute.objects.create(
+            label=request.data.get("label") or f"{origin.label} - EMSP",
+            origin=origin,
+            destination=request.data.get("destination") or "EMSP",
+            pickup_time=request.data.get("pickup_time") or None,
+            distance_km=request.data.get("distance_km") or Decimal("0.00"),
+            is_active=request.data.get("is_active", True),
+        )
+        return Response(TransportRouteSerializer(route).data, status=status.HTTP_201_CREATED)
+
+
+class AdminTransportCarApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        return Response(
+            TransportCarSerializer(TransportCar.objects.select_related("depot", "route"), many=True).data
+        )
+
+    def post(self, request):
+        car = TransportCar.objects.create(
+            label=request.data.get("label") or "Car",
+            plate_number=request.data.get("plate_number", ""),
+            places=request.data.get("places") or 0,
+            depot_id=request.data.get("depot") or None,
+            route_id=request.data.get("route") or None,
+            description=request.data.get("description", ""),
+            is_active=request.data.get("is_active", True),
+        )
+        return Response(TransportCarSerializer(car).data, status=status.HTTP_201_CREATED)
+
+
+class AdminTransportDriverApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        return Response(TransportDriverSerializer(TransportDriver.objects.select_related("user", "car"), many=True).data)
+
+    def post(self, request):
+        email = str(request.data.get("email") or "").strip().lower()
+        full_name = " ".join(str(request.data.get("full_name") or "").split())
+        if not email or not full_name:
+            raise serializers.ValidationError({"detail": "Nom complet et email obligatoires."})
+        first_name, *rest = full_name.split(" ")
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": email,
+                "first_name": first_name,
+                "last_name": " ".join(rest),
+                "role": "chauffeur",
+                "phone": request.data.get("phone", ""),
+            },
+        )
+        if created:
+            user.set_password(request.data.get("password") or "chauffeur12345")
+            user.save()
+        else:
+            user.role = "chauffeur"
+            user.first_name = first_name
+            user.last_name = " ".join(rest)
+            user.phone = request.data.get("phone", user.phone)
+            user.save()
+        driver, _ = TransportDriver.objects.update_or_create(
+            user=user,
+            defaults={
+                "car_id": request.data.get("car") or None,
+                "phone": request.data.get("phone", ""),
+                "license_number": request.data.get("license_number", ""),
+                "is_active": request.data.get("is_active", True),
+            },
+        )
+        return Response(TransportDriverSerializer(driver).data, status=status.HTTP_201_CREATED)
+
+
+class DriverTripApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_driver(self, request):
+        driver = TransportDriver.objects.select_related("car", "car__route").filter(user=request.user).first()
+        if driver is None:
+            raise NotFound("Aucun profil chauffeur n'est lie a ce compte.")
+        return driver
+
+    def get(self, request):
+        driver = self.get_driver(request)
+        trips = TransportTrip.objects.select_related("driver__user", "car", "route").filter(driver=driver)
+        return Response({"driver": TransportDriverSerializer(driver).data, "trips": TransportTripSerializer(trips, many=True).data})
+
+    def post(self, request):
+        driver = self.get_driver(request)
+        car = driver.car
+        if car is None:
+            raise serializers.ValidationError({"car": "Aucun car n'est affecte a ce chauffeur."})
+        service_date = request.data.get("service_date") or timezone.localdate()
+        trip, _ = TransportTrip.objects.update_or_create(
+            driver=driver,
+            car=car,
+            service_date=service_date,
+            defaults={
+                "route": car.route,
+                "departure_time": request.data.get("departure_time") or None,
+                "arrival_time": request.data.get("arrival_time") or None,
+                "notes": request.data.get("notes", ""),
+            },
+        )
+        return Response(TransportTripSerializer(trip).data, status=status.HTTP_201_CREATED)
+
+
 class AdminDashboardApiView(APIView):
     permission_classes = [IsAuthenticated, IsFullAdminAccess]
 
@@ -887,6 +1407,120 @@ class AdminPortalStudentDetailApiView(APIView):
         )
 
 
+class DashboardPromotionListCreateApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        queryset = (
+            Promotion.objects.select_related("formation")
+            .annotate(etudiants_count=Count("etudiants"))
+            .order_by("-year_start", "label")
+        )
+        return Response(_paginated_payload(request, queryset, DashboardPromotionSerializer))
+
+    def post(self, request):
+        serializer = DashboardPromotionWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+        promotion = Promotion.objects.create(
+            label=payload["label"],
+            formation=payload["formation_obj"],
+            year_start=payload["year_start"],
+            year_end=payload["year_end"],
+        )
+        return Response(DashboardPromotionSerializer(promotion).data, status=status.HTTP_201_CREATED)
+
+
+class DashboardPromotionDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get_object(self, pk):
+        promotion = (
+            Promotion.objects.select_related("formation")
+            .annotate(etudiants_count=Count("etudiants"))
+            .filter(pk=pk)
+            .first()
+        )
+        if promotion is None:
+            raise NotFound("Promotion introuvable.")
+        return promotion
+
+    def get(self, request, pk):
+        return Response(DashboardPromotionSerializer(self.get_object(pk)).data)
+
+    def put(self, request, pk):
+        promotion = self.get_object(pk)
+        serializer = DashboardPromotionWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+        promotion.label = payload["label"]
+        promotion.formation = payload["formation_obj"]
+        promotion.year_start = payload["year_start"]
+        promotion.year_end = payload["year_end"]
+        promotion.save()
+        return Response(DashboardPromotionSerializer(promotion).data)
+
+    def delete(self, request, pk):
+        promotion = self.get_object(pk)
+        promotion.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DashboardEmploiDuTempsListCreateApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        queryset = EmploiDuTempsItem.objects.select_related("promotion", "promotion__formation").order_by("debut")
+        return Response(_paginated_payload(request, queryset, DashboardEmploiDuTempsSerializer))
+
+    def post(self, request):
+        serializer = DashboardEmploiDuTempsWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+        item = EmploiDuTempsItem.objects.create(
+            promotion=payload["promotion_obj"],
+            matiere=payload["matiere"],
+            enseignant=payload.get("enseignant", ""),
+            salle=payload.get("salle", ""),
+            type=payload["type"],
+            debut=payload["debut"],
+            fin=payload["fin"],
+        )
+        return Response(DashboardEmploiDuTempsSerializer(item).data, status=status.HTTP_201_CREATED)
+
+
+class DashboardEmploiDuTempsDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get_object(self, pk):
+        item = EmploiDuTempsItem.objects.select_related("promotion", "promotion__formation").filter(pk=pk).first()
+        if item is None:
+            raise NotFound("Creneau introuvable.")
+        return item
+
+    def get(self, request, pk):
+        return Response(DashboardEmploiDuTempsSerializer(self.get_object(pk)).data)
+
+    def put(self, request, pk):
+        item = self.get_object(pk)
+        serializer = DashboardEmploiDuTempsWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+        item.promotion = payload["promotion_obj"]
+        item.matiere = payload["matiere"]
+        item.enseignant = payload.get("enseignant", "")
+        item.salle = payload.get("salle", "")
+        item.type = payload["type"]
+        item.debut = payload["debut"]
+        item.fin = payload["fin"]
+        item.save()
+        return Response(DashboardEmploiDuTempsSerializer(item).data)
+
+    def delete(self, request, pk):
+        self.get_object(pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class AdminAcademicOverviewApiView(APIView):
     permission_classes = [IsAuthenticated, IsAdminFamily]
 
@@ -985,3 +1619,51 @@ class AdminAcademicOverviewApiView(APIView):
                 "top_students": top_students,
             }
         )
+
+
+class AdminEnseignantWriteSerializer(serializers.Serializer):
+    full_name = serializers.CharField(max_length=200)
+    specialite = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=30, required=False, allow_blank=True)
+    statut = serializers.ChoiceField(
+        choices=[choice[0] for choice in Enseignant.STATUS_CHOICES],
+        required=False,
+        default="disponible",
+    )
+    disponibilite = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    is_active = serializers.BooleanField(required=False, default=True)
+
+    def validate_full_name(self, value):
+        cleaned = " ".join((value or "").split())
+        if not cleaned:
+            raise serializers.ValidationError("Nom complet obligatoire.")
+        return cleaned
+
+
+class AdminEnseignantListCreateApiView(APIView):
+    permission_classes = [IsAuthenticated, IsFullAdminAccess]
+
+    def get(self, request):
+        ensure_portal_demo_data()
+        queryset = Enseignant.objects.all()
+        return Response(EnseignantSerializer(queryset, many=True).data)
+
+    def post(self, request):
+        ensure_portal_demo_data()
+        serializer = AdminEnseignantWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        teacher = Enseignant.objects.create(**serializer.validated_data)
+        return Response(EnseignantSerializer(teacher).data, status=status.HTTP_201_CREATED)
+
+
+class AdminEnseignantDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsFullAdminAccess]
+
+    def delete(self, request, pk):
+        ensure_portal_demo_data()
+        teacher = Enseignant.objects.filter(pk=pk).first()
+        if teacher is None:
+            raise NotFound("Enseignant introuvable.")
+        teacher.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -7,6 +7,7 @@ from .models import Paiement
 
 class PaiementSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source="etudiant.user.full_name", read_only=True)
+    etudiant_nom = serializers.CharField(source="etudiant.user.full_name", read_only=True)
     matricule = serializers.CharField(source="etudiant.matricule", read_only=True)
     formation_name = serializers.CharField(source="etudiant.formation.nom", read_only=True)
     student_country = serializers.CharField(source="etudiant.get_pays_display", read_only=True)
@@ -17,6 +18,7 @@ class PaiementSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "student_name",
+            "etudiant_nom",
             "matricule",
             "formation_name",
             "student_country",
@@ -36,7 +38,7 @@ class PaiementSerializer(serializers.ModelSerializer):
 
 
 class PaiementInitiateSerializer(serializers.Serializer):
-    operateur = serializers.ChoiceField(choices=["orange", "mtn", "wave"])
+    operateur = serializers.ChoiceField(choices=["orange", "mtn", "moov", "wave"])
     phone = serializers.CharField(max_length=30)
     montant = serializers.DecimalField(max_digits=12, decimal_places=2)
     description = serializers.CharField(max_length=255)

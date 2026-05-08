@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   createForumPost,
+  changeEtudiantPassword,
   fetchEtudiantProfile,
   fetchStudentDashboard,
   fetchStudentDocuments,
@@ -10,6 +11,8 @@ import {
   fetchStudentPayments,
   fetchStudentSchedule,
   initiateStudentPayment,
+  updateEtudiantProfile,
+  uploadEtudiantPhoto,
 } from "../api/portalApi";
 
 export const useEtudiantMe = () =>
@@ -61,6 +64,14 @@ export const useStudentPayments = () =>
     staleTime: 30 * 1000,
   });
 
+export const usePollingStudentPayments = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["student", "payments"],
+    queryFn: fetchStudentPayments,
+    staleTime: 10 * 1000,
+    refetchInterval: enabled ? 10 * 1000 : false,
+  });
+
 export const useCreateForumPost = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -80,3 +91,30 @@ export const useInitiateStudentPayment = () => {
     },
   });
 };
+
+export const useUpdateEtudiantProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateEtudiantProfile,
+    onSuccess: (data) => {
+      queryClient.setQueryData(["student", "me"], data);
+      queryClient.invalidateQueries({ queryKey: ["student", "me"] });
+    },
+  });
+};
+
+export const useUploadEtudiantPhoto = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: uploadEtudiantPhoto,
+    onSuccess: (data) => {
+      queryClient.setQueryData(["student", "me"], data);
+      queryClient.invalidateQueries({ queryKey: ["student", "me"] });
+    },
+  });
+};
+
+export const useChangeEtudiantPassword = () =>
+  useMutation({
+    mutationFn: changeEtudiantPassword,
+  });

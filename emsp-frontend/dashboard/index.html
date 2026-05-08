@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="fr" data-bs-theme="blue-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMSP - Dashboard</title>
+  <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png">
+  <link href="assets/css/pace.min.css" rel="stylesheet">
+  <script src="assets/js/pace.min.js"></script>
+  <link href="assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/plugins/metismenu/metisMenu.min.css">
+  <link rel="stylesheet" href="assets/plugins/metismenu/mm-vertical.css">
+  <link rel="stylesheet" href="assets/plugins/simplebar/css/simplebar.css">
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="assets/css/bootstrap-extended.css" rel="stylesheet">
+  <link href="sass/main.css" rel="stylesheet">
+  <link href="sass/dark-theme.css" rel="stylesheet">
+  <link href="sass/blue-theme.css" rel="stylesheet">
+  <link href="sass/semi-dark.css" rel="stylesheet">
+  <link href="sass/bordered-theme.css" rel="stylesheet">
+  <link href="sass/responsive.css" rel="stylesheet">
+</head>
+<body>
+  <header class="top-header">
+    <nav class="navbar navbar-expand align-items-center gap-4">
+      <div class="btn-toggle"><a href="javascript:;"><i class="material-icons-outlined">menu</i></a></div>
+      <div class="search-bar flex-grow-1">
+        <div class="position-relative">
+          <input class="form-control rounded-5 px-5 search-control d-lg-block d-none" type="text" placeholder="Rechercher etudiants, dossiers, formations...">
+          <span class="material-icons-outlined position-absolute d-lg-block d-none ms-3 translate-middle-y start-0 top-50">search</span>
+        </div>
+      </div>
+      <ul class="navbar-nav gap-1 nav-right-links align-items-center">
+        <li class="nav-item dropdown">
+          <a href="javascript:;" class="dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown">
+            <img src="assets/images/avatars/01.png" class="rounded-circle p-1 border" width="45" height="45" alt="">
+          </a>
+          <div class="dropdown-menu dropdown-user dropdown-menu-end shadow">
+            <a class="dropdown-item gap-2 py-2" href="javascript:;">
+              <div class="text-center">
+                <h5 class="user-name mb-0 fw-bold" id="dashboard-user-name">Utilisateur</h5>
+                <p class="mb-0 text-muted" id="dashboard-user-role"></p>
+              </div>
+            </a>
+            <hr class="dropdown-divider">
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:;" onclick="logout()">
+              <i class="material-icons-outlined">power_settings_new</i>Deconnexion
+            </a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header">
+      <div class="logo-name flex-grow-1"><h5 class="mb-0">EMSP</h5></div>
+      <div class="sidebar-close"><span class="material-icons-outlined">close</span></div>
+    </div>
+    <div class="sidebar-nav">
+      <ul class="metismenu" id="sidenav">
+        <li class="mm-active"><a href="index.html"><div class="parent-icon"><i class="material-icons-outlined">home</i></div><div class="menu-title">Tableau de bord</div></a></li>
+        <li class="menu-label">Scolarite</li>
+        <li data-permission="etudiants"><a href="etudiants.html"><div class="parent-icon"><i class="material-icons-outlined">people</i></div><div class="menu-title">Etudiants</div></a></li>
+        <li data-permission="promotions"><a href="promotions.html"><div class="parent-icon"><i class="material-icons-outlined">school</i></div><div class="menu-title">Promotions</div></a></li>
+        <li data-permission="notes"><a href="notes.html"><div class="parent-icon"><i class="material-icons-outlined">grading</i></div><div class="menu-title">Notes</div></a></li>
+        <li data-permission="emploi-du-temps"><a href="emploi-du-temps.html"><div class="parent-icon"><i class="material-icons-outlined">calendar_month</i></div><div class="menu-title">Emploi du temps</div></a></li>
+        <li class="menu-label">Gestion</li>
+        <li data-permission="inscriptions"><a href="inscriptions.html"><div class="parent-icon"><i class="material-icons-outlined">assignment</i></div><div class="menu-title">Inscriptions</div></a></li>
+        <li data-permission="formations"><a href="formations.html"><div class="parent-icon"><i class="material-icons-outlined">menu_book</i></div><div class="menu-title">Formations</div></a></li>
+        <li data-permission="comptabilite"><a href="comptabilite.html"><div class="parent-icon"><i class="material-icons-outlined">account_balance</i></div><div class="menu-title">Comptabilite</div></a></li>
+        <li data-permission="transport"><a href="transport.html"><div class="parent-icon"><i class="material-icons-outlined">directions_bus</i></div><div class="menu-title">Transport</div></a></li>
+        <li class="menu-label">Contenu</li>
+        <li data-permission="actualites"><a href="actualites.html"><div class="parent-icon"><i class="material-icons-outlined">article</i></div><div class="menu-title">Actualites</div></a></li>
+        <li data-permission="mediatheque"><a href="mediatheque.html"><div class="parent-icon"><i class="material-icons-outlined">perm_media</i></div><div class="menu-title">Mediatheque</div></a></li>
+        <li class="menu-label">Administration</li>
+        <li data-permission="utilisateurs"><a href="utilisateurs.html"><div class="parent-icon"><i class="material-icons-outlined">manage_accounts</i></div><div class="menu-title">Utilisateurs</div></a></li>
+        <li data-permission="configuration"><a href="configuration.html"><div class="parent-icon"><i class="material-icons-outlined">settings</i></div><div class="menu-title">Configuration</div></a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <div class="main-content">
+      <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Administration</div>
+        <div class="ps-3"><ol class="breadcrumb mb-0 p-0"><li class="breadcrumb-item active">Dashboard</li></ol></div>
+      </div>
+      <div id="alert-container"></div>
+
+      <div class="row">
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="mb-0 text-muted">Total Etudiants</p><h4 id="kpi-total-students">0</h4><small class="text-muted">+12% vs annee precedente</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="mb-0 text-muted">Taux de Recouvrement</p><h4 id="kpi-recovery-rate">0%</h4><small class="text-muted">progression financiere</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="mb-0 text-muted">Taux de Reussite</p><h4 id="kpi-success-rate">0%</h4><small class="text-muted">comparatif semestre precedent</small></div></div></div>
+        <div class="col-xl-3 col-md-6"><div class="card rounded-4"><div class="card-body"><p class="mb-0 text-muted">Inscriptions en attente</p><h4 id="kpi-pending-applications">0</h4><small class="text-muted">a traiter</small></div></div></div>
+      </div>
+
+      <div class="card rounded-4">
+        <div class="card-body">
+          <p class="text-uppercase text-primary mb-1">Navigation rapide</p>
+          <h5 class="mb-3">Modules du dashboard</h5>
+          <div class="row g-3" id="quick-links"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xxl-7 d-flex"><div class="card rounded-4 w-100"><div class="card-body"><p class="text-uppercase text-primary mb-1">Inscriptions</p><h5>Evolution sur 5 ans</h5><div id="chart-yearly" style="min-height:320px"></div></div></div></div>
+        <div class="col-xxl-5 d-flex"><div class="card rounded-4 w-100"><div class="card-body"><p class="text-uppercase text-primary mb-1">Effectifs</p><h5>Par pays membres</h5><div id="chart-countries" style="min-height:320px"></div></div></div></div>
+      </div>
+
+      <div class="row">
+        <div class="col-xl-6 d-flex"><div class="card rounded-4 w-100"><div class="card-body"><p class="text-uppercase text-primary mb-1">Filiere</p><h5>Repartition par filiere</h5><div id="chart-formations" style="min-height:320px"></div></div></div></div>
+        <div class="col-xl-6 d-flex"><div class="card rounded-4 w-100"><div class="card-body"><p class="text-uppercase text-primary mb-1">Finance</p><h5>Recouvrement mensuel</h5><div id="chart-finance" style="min-height:260px"></div><div class="row g-3 mt-2" id="finance-summary"></div></div></div></div>
+      </div>
+
+      <div class="card rounded-4">
+        <div class="card-body">
+          <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
+            <div><p class="text-uppercase text-primary mb-1">Admissions</p><h5 class="mb-0">Dernieres inscriptions</h5></div>
+            <span class="badge bg-warning text-dark rounded-pill">A traiter</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead><tr><th>Nom</th><th>Pays</th><th>Filiere</th><th>Date</th><th>Statut</th></tr></thead>
+              <tbody id="latest-inscriptions"><tr><td colspan="5" class="text-center text-muted">Chargement...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="overlay btn-toggle"></div>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
+  <script src="assets/plugins/metismenu/metisMenu.min.js"></script>
+  <script src="assets/plugins/apexchart/apexcharts.min.js"></script>
+  <script src="assets/plugins/simplebar/js/simplebar.min.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="js/dashboard-api.js"></script>
+  <script>
+    if (!requireAuth()) {}
+    filterSidebarMenu();
+
+    const chartRefs = {};
+    const moduleLinks = [
+      { permission: 'etudiants', href: 'etudiants.html', icon: 'people', label: 'Etudiants', description: 'Cohortes, pays membres et dossiers administratifs.' },
+      { permission: 'inscriptions', href: 'inscriptions.html', icon: 'assignment', label: 'Candidatures', description: 'Dossiers recus, pieces jointes et confirmations.' },
+      { permission: 'comptabilite', href: 'comptabilite.html', icon: 'account_balance', label: 'Comptabilite', description: 'Recouvrements, paiements et impayes.' },
+      { permission: 'formations', href: 'formations.html', icon: 'menu_book', label: 'Formations', description: 'Filieres, programmes et offres publiees.' },
+    ];
+
+    function renderQuickLinks() {
+      const container = document.getElementById('quick-links');
+      container.innerHTML = moduleLinks
+        .filter((item) => checkPermissionForLink(item.permission))
+        .map((item) => `
+          <div class="col-xl-3 col-md-6">
+            <a class="card rounded-4 h-100 text-decoration-none" href="${item.href}">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary mb-3" style="width:46px;height:46px">
+                  <i class="material-icons-outlined">${item.icon}</i>
+                </div>
+                <h6 class="text-dark">${item.label}</h6>
+                <p class="text-muted small mb-0">${item.description}</p>
+              </div>
+            </a>
+          </div>
+        `).join('');
+    }
+
+    function checkPermissionForLink(pageName) {
+      const user = getCurrentUser();
+      const allowed = PERMISSIONS[pageName];
+      return !allowed || allowed.includes(user?.role);
+    }
+
+    function renderChart(id, options) {
+      if (chartRefs[id]) chartRefs[id].destroy();
+      chartRefs[id] = new ApexCharts(document.querySelector(id), options);
+      chartRefs[id].render();
+    }
+
+    async function loadDashboard() {
+      showLoader(true);
+      try {
+        const [dashboard, finance] = await Promise.allSettled([
+          apiCall('scolarite/dashboard/'),
+          apiCall('comptabilite/summary/')
+        ]);
+        const data = dashboard.status === 'fulfilled' ? dashboard.value : {};
+        const financeData = finance.status === 'fulfilled' ? finance.value : null;
+        const kpis = data.kpis || {};
+
+        document.getElementById('kpi-total-students').textContent = Number(kpis.total_students || 0).toLocaleString('fr-FR');
+        document.getElementById('kpi-recovery-rate').textContent = `${Number(kpis.recovery_rate || 0).toFixed(1)}%`;
+        document.getElementById('kpi-success-rate').textContent = `${Number(kpis.success_rate || 0).toFixed(1)}%`;
+        document.getElementById('kpi-pending-applications').textContent = Number(kpis.pending_applications || 0).toLocaleString('fr-FR');
+
+        const yearly = data.yearly_enrolments || [];
+        renderChart('#chart-yearly', {
+          chart: { type: 'line', height: 320, toolbar: { show: false } },
+          series: [{ name: 'Inscriptions', data: yearly.map((item) => item.total) }],
+          xaxis: { categories: yearly.map((item) => item.year) },
+          dataLabels: { enabled: false },
+          stroke: { curve: 'smooth', width: 3 }
+        });
+
+        const countries = data.country_distribution || [];
+        renderChart('#chart-countries', {
+          chart: { type: 'bar', height: 320, toolbar: { show: false } },
+          plotOptions: { bar: { horizontal: true, borderRadius: 6 } },
+          series: [{ name: 'Etudiants', data: countries.map((item) => item.total) }],
+          xaxis: { categories: countries.map((item) => item.pays) },
+          dataLabels: { enabled: false }
+        });
+
+        const formations = data.formation_distribution || [];
+        renderChart('#chart-formations', {
+          chart: { type: 'donut', height: 320 },
+          series: formations.length ? formations.map((item) => item.total) : [1],
+          labels: formations.length ? formations.map((item) => item.formation__nom || item.formation_name || 'Filiere') : ['Aucune donnee']
+        });
+
+        const financeSeries = financeData?.evolution || data.monthly_finance || [];
+        renderChart('#chart-finance', {
+          chart: { type: 'area', height: 260, toolbar: { show: false } },
+          series: [
+            { name: 'Encaisse', data: financeSeries.map((item) => item.paid || 0) },
+            { name: 'Objectif / du', data: financeSeries.map((item) => item.goal || item.due || 0) }
+          ],
+          xaxis: { categories: financeSeries.map((item) => item.label) },
+          dataLabels: { enabled: false },
+          stroke: { curve: 'smooth' }
+        });
+
+        document.getElementById('finance-summary').innerHTML = financeData ? `
+          <div class="col-md-4"><div class="rounded-4 bg-light p-3"><p class="text-muted small mb-1">Recettes du mois</p><h6>${formatCurrency(financeData.monthly_revenue)}</h6></div></div>
+          <div class="col-md-4"><div class="rounded-4 bg-light p-3"><p class="text-muted small mb-1">Paiements en attente</p><h6>${Number(financeData.pending_payments || 0).toLocaleString('fr-FR')}</h6></div></div>
+          <div class="col-md-4"><div class="rounded-4 bg-light p-3"><p class="text-muted small mb-1">Impayes</p><h6 class="text-danger">${formatCurrency(financeData.unpaid_total)}</h6></div></div>
+        ` : '';
+
+        const latest = data.latest_inscriptions || [];
+        document.getElementById('latest-inscriptions').innerHTML = latest.length ? latest.map((item) => `
+          <tr>
+            <td class="fw-semibold">${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.country)}</td>
+            <td>${escapeHtml(item.formation)}</td>
+            <td>${escapeHtml(item.date)}</td>
+            <td>${getAdminStatusBadge('', item.status)}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="5" class="text-center text-muted">Aucune inscription recente.</td></tr>';
+      } catch (error) {
+        showAlert(parseApiError(error, 'Erreur chargement dashboard'), 'danger');
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderQuickLinks();
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

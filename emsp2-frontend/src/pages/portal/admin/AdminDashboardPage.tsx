@@ -69,7 +69,7 @@ const AdminDashboardPage = () => {
         {kpis.map((item) => {
           const Icon = item.icon;
           return (
-            <SurfaceCard key={item.label} className="p-5">
+            <SurfaceCard key={item.label} className="emsp-panel p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm text-slate-500">{item.label}</p>
@@ -85,7 +85,7 @@ const AdminDashboardPage = () => {
         })}
       </div>
 
-      <SurfaceCard className="p-6">
+      <SurfaceCard className="emsp-panel p-6">
         <div className="mb-5">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Navigation rapide</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Modules du dashboard</h2>
@@ -97,7 +97,7 @@ const AdminDashboardPage = () => {
               <Link
                 key={item.to}
                 to={item.to}
-                className="rounded-3xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-1 hover:border-secondary/40 hover:bg-white hover:shadow-sm"
+                className="emsp-panel rounded-3xl bg-slate-50 p-5 transition hover:-translate-y-1 hover:border-secondary/40 hover:bg-white hover:shadow-sm"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
                   <Icon size={22} />
@@ -111,14 +111,14 @@ const AdminDashboardPage = () => {
       </SurfaceCard>
 
       <div className="grid gap-6 2xl:grid-cols-[1.2fr_0.8fr]">
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Inscriptions</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Evolution sur 5 ans</h2>
           <div className="mt-6">
             <MiniLineChart data={data.yearlyEnrolments.map((item) => ({ label: item.year, value: item.total }))} />
           </div>
         </SurfaceCard>
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Effectifs</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Par pays membres</h2>
           <div className="mt-6">
@@ -128,14 +128,14 @@ const AdminDashboardPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Filiere</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Repartition par filiere</h2>
           <div className="mt-6">
             <DonutBreakdown data={data.formationDistribution.map((item) => ({ label: item.formationName, value: item.total }))} />
           </div>
         </SurfaceCard>
-        <SurfaceCard className="p-6">
+        <SurfaceCard className="emsp-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-secondary">Finance</p>
           <h2 className="mt-2 font-display text-2xl font-bold text-dark">Recouvrement mensuel</h2>
           <div className="mt-6">
@@ -160,7 +160,7 @@ const AdminDashboardPage = () => {
         </SurfaceCard>
       </div>
 
-      <SurfaceCard className="p-6">
+      <SurfaceCard className="emsp-panel p-6">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.24em] text-secondary">Admissions</p>

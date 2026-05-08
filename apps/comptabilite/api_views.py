@@ -102,6 +102,8 @@ class FinanceSummaryApiView(APIView):
                 "pending_payments": payment_pending,
                 "unpaid_total": float(impayes_total),
                 "evolution": evolution,
+                "months": [row["label"] for row in evolution],
+                "values": [row["paid"] for row in evolution],
             }
         )
 
@@ -114,8 +116,8 @@ class AdminPaiementListApiView(APIView):
 
         queryset = Paiement.objects.select_related("etudiant__user", "etudiant__formation")
         search = request.query_params.get("search", "").strip()
-        status_filter = request.query_params.get("status", "").strip().lower()
-        operator = request.query_params.get("operator", "").strip().lower()
+        status_filter = (request.query_params.get("status") or request.query_params.get("statut") or "").strip().lower()
+        operator = (request.query_params.get("operator") or request.query_params.get("operateur") or "").strip().lower()
 
         if search:
             queryset = queryset.filter(
@@ -129,11 +131,35 @@ class AdminPaiementListApiView(APIView):
             queryset = queryset.filter(statut=status_filter)
         if operator:
             queryset = queryset.filter(operateur=operator)
+        year = request.query_params.get("annee")
+        month = request.query_params.get("mois")
+        if year:
+            queryset = queryset.filter(created_at__year=year)
+        if month:
+            queryset = queryset.filter(created_at__month=month)
 
         paiements = queryset.order_by("-created_at")
+        if request.query_params.get("stats"):
+            now = timezone.localdate()
+            return Response(
+                {
+                    "encaisse_mois": float(_sum_decimal(paiements.filter(statut="confirmed", created_at__year=now.year, created_at__month=now.month), "montant")),
+                    "total_attente": float(_sum_decimal(paiements.filter(statut="pending"), "montant")),
+                    "total_refuse": float(_sum_decimal(paiements.filter(statut__in=["failed", "refunded"]), "montant")),
+                }
+            )
+
+        try:
+            page = max(1, int(request.query_params.get("page", 1)))
+            page_size = max(1, min(100, int(request.query_params.get("page_size", 20))))
+        except (TypeError, ValueError):
+            page, page_size = 1, 20
+        count = paiements.count()
+        rows = paiements[(page - 1) * page_size:page * page_size]
 
         return Response(
             {
+                "count": count,
                 "summary": {
                     "total_transactions": paiements.count(),
                     "confirmed_count": paiements.filter(statut="confirmed").count(),
@@ -141,7 +167,73 @@ class AdminPaiementListApiView(APIView):
                     "failed_count": paiements.filter(statut__in=["failed", "refunded"]).count(),
                     "confirmed_total": float(_sum_decimal(paiements.filter(statut="confirmed"), "montant")),
                 },
-                "results": PaiementSerializer(paiements, many=True).data,
+                "results": PaiementSerializer(rows, many=True).data,
+            }
+        )
+
+
+class AdminPaiementDetailApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request, pk):
+        paiement = Paiement.objects.select_related("etudiant__user", "etudiant__formation").filter(pk=pk).first()
+        if paiement is None:
+            raise NotFound("Paiement introuvable.")
+        return Response(PaiementSerializer(paiement).data)
+
+
+class AdminFinanceAuditApiView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminFamily]
+
+    def get(self, request):
+        ensure_portal_demo_data()
+        students = Etudiant.objects.select_related("user", "formation", "promotion").all()
+        payments = Paiement.objects.select_related("etudiant", "etudiant__formation").all()
+        confirmed = payments.filter(statut="confirmed")
+
+        rows = []
+        for student in students:
+            paid = _sum_decimal(confirmed.filter(etudiant=student), "montant")
+            due = student.solde_scolarite
+            rows.append(
+                {
+                    "student_id": student.id,
+                    "matricule": student.matricule,
+                    "student_name": student.user.full_name,
+                    "formation_name": student.formation.nom,
+                    "promotion_label": student.promotion.label if student.promotion else "",
+                    "paid_total": float(paid),
+                    "due_total": float(due),
+                    "balance": float(due),
+                }
+            )
+
+        formations = []
+        for formation in {student.formation for student in students}:
+            formation_students = [student for student in students if student.formation_id == formation.id]
+            formation_paid = _sum_decimal(confirmed.filter(etudiant__formation=formation), "montant")
+            formation_due = sum((student.solde_scolarite for student in formation_students), Decimal("0.00"))
+            formations.append(
+                {
+                    "formation_id": formation.id,
+                    "formation_name": formation.nom,
+                    "students": len(formation_students),
+                    "paid_total": float(formation_paid),
+                    "due_total": float(formation_due),
+                }
+            )
+
+        return Response(
+            {
+                "summary": {
+                    "paid_total": float(_sum_decimal(confirmed, "montant")),
+                    "due_total": float(_sum_decimal(students, "solde_scolarite")),
+                    "students": students.count(),
+                    "formations": len(formations),
+                },
+                "students": rows,
+                "formations": formations,
+                "payments": PaiementSerializer(payments.order_by("-created_at")[:100], many=True).data,
             }
         )
 

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, FileText, FolderOpen, GraduationCap, Image, LayoutDashboard, Receipt, Settings2, ShieldCheck, Users } from "lucide-react";
+import { Bell, BusFront, FileText, FolderOpen, GraduationCap, Image, LayoutDashboard, Receipt, Settings2, ShieldCheck, Users } from "lucide-react";
 
 import type { User } from "../types";
 
@@ -15,6 +15,7 @@ export interface AdminPortalItem {
 
 export const fullAdminRoles: AdminRole[] = ["staff", "compta", "admin"];
 export const limitedAdminRoles: AdminRole[] = ["staff", "compta", "admin", "direction"];
+export const staticAdminDashboardPath = "/dashboard/index.html";
 
 export const adminPortalItems: AdminPortalItem[] = [
   {
@@ -43,6 +44,13 @@ export const adminPortalItems: AdminPortalItem[] = [
     label: "Comptabilite",
     icon: Receipt,
     description: "Paiements, recus et relances",
+    allowedRoles: limitedAdminRoles,
+  },
+  {
+    to: "/admin/transport",
+    label: "Transport",
+    icon: BusFront,
+    description: "Cars, paiements et expirations",
     allowedRoles: limitedAdminRoles,
   },
   {
@@ -89,8 +97,7 @@ export const adminPortalItems: AdminPortalItem[] = [
   },
 ];
 
-export const getAdminHomePath = (role?: User["role"] | null) =>
-  role === "direction" ? "/admin/etudiants" : "/admin/dashboard";
+export const getAdminHomePath = (_role?: User["role"] | null) => staticAdminDashboardPath;
 
 export const getVisibleAdminPortalItems = (role?: User["role"] | null) =>
   adminPortalItems.filter((item) => item.allowedRoles.includes((role || "admin") as AdminRole));
